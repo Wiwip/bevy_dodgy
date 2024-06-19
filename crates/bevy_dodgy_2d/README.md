@@ -27,7 +27,7 @@ This example uses the "raw" API.
 ```rust
 use std::borrow::Cow;
 
-use dodgy_2d::{Agent, AvoidanceOptions, Obstacle, Vec2};
+use bevy_dodgy_2d::{Agent, AvoidanceOptions, Obstacle};
 
 let mut agents: Vec<Cow<'static, Agent>> = vec![
   Cow::Owned(Agent {
@@ -119,9 +119,10 @@ your regular spatial queries, and exposes just the avoidance part.
 However, an alternative using the `Simulator` struct:
 
 ```rust
-use dodgy_2d::{
-  Agent, AvoidanceOptions, AgentParameters, Obstacle, Simulator, Vec2
+use bevy_dodgy_2d::{
+  Agent, AvoidanceOptions, AgentParameters, Obstacle, Simulator
 };
+use bevy::prelude::*;
 
 let mut simulator = Simulator::new();
 simulator.add_agent(Agent {
@@ -132,7 +133,7 @@ simulator.add_agent(Agent {
 }, AgentParameters {
   goal_point: Vec2::new(50.0, 0.0),
   max_speed: 5.0,
-  obstacle_margin: dodgy_2d::SimulatorMargin::Distance(0.1),
+  obstacle_margin: bevy_dodgy_2d::SimulatorMargin::Distance(0.1),
   time_horizon: 3.0,
   obstacle_time_horizon: 1.0,
 });

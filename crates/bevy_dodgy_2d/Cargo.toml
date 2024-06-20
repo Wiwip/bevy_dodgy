@@ -13,11 +13,16 @@ repository = "https://github.com/andriyDev/dodgy"
 categories = ["game-development"]
 keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 
-#[dependencies]
-#glam = "0.28.0"
-
 [dependencies.bevy]
-version = "0.14.0-rc.3"
+version = "0.13"
 features = ["dynamic_linking"]
+
 [dependencies]
-log = "0.4.21"
+bevy_xpbd_2d = "0.4.2"
+
+[dev-dependencies]
+rand = "0.9.0-alpha.1"
+
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"

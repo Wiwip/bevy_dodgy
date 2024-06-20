@@ -20,8 +20,9 @@
 // <https://gamma.cs.unc.edu/RVO2/>
 
 use bevy::prelude::*;
+use bevy_xpbd_2d::prelude::Collider;
 
-use crate::{common::determinant, Agent, Line};
+use crate::{common::determinant, Line};
 
 /// A single obstacle in the simulation.
 #[derive(Clone, PartialEq, Debug)]
@@ -37,7 +38,7 @@ pub enum Obstacle {
     /// obstacle, so the left of the edge is solid, and the right is clear.
     Open { vertices: Vec<Vec2> },
 }
-
+/*
 /// Computes the lines describing the half-planes of valid velocities for
 /// `agent` induced by `obstacle`. `time_horizon` determines how much time in
 /// the future should collisions be considered for this obstacle.
@@ -62,13 +63,15 @@ pub fn get_lines_for_agent_to_obstacle(
         ),
     }
 }
-
+*/
+/*
 fn get_lines_for_agent_to_obstacle_const<const CLOSED: bool>(
     agent: &Agent,
     vertices: &[Vec2],
     obstacle_margin: f32,
     time_horizon: f32,
 ) -> Vec<Line> {
+
     let convexity = {
         let mut convexity = Vec::with_capacity(vertices.len());
         for i in 0..vertices.len() {
@@ -118,6 +121,8 @@ fn get_lines_for_agent_to_obstacle_const<const CLOSED: bool>(
 
             let left_vertex = edge_vertex_for_index(left_index);
             let right_vertex = edge_vertex_for_index(right_index);
+
+
 
             if let Some(line) = get_line_for_agent_to_edge(
                 agent,
@@ -527,7 +532,10 @@ fn get_line_for_agent_to_edge(
         }
     }
 }
+*/
 
+
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1566,3 +1574,5 @@ mod tests {
         );
     }
 }
+
+*/

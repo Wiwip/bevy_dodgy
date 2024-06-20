@@ -21,7 +21,7 @@
 
 use bevy::prelude::*;
 
-use crate::{common::determinant, Agent, Line};
+use crate::{common::determinant, Line};
 
 /// A single obstacle in the simulation.
 #[derive(Clone, PartialEq, Debug)]
@@ -37,7 +37,7 @@ pub enum Obstacle {
     /// obstacle, so the left of the edge is solid, and the right is clear.
     Open { vertices: Vec<Vec2> },
 }
-
+/*
 /// Computes the lines describing the half-planes of valid velocities for
 /// `agent` induced by `obstacle`. `time_horizon` determines how much time in
 /// the future should collisions be considered for this obstacle.
@@ -1566,3 +1566,5 @@ mod tests {
         );
     }
 }
+
+*/

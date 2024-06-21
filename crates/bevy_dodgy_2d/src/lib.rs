@@ -1,12 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-use bevy::prelude::*;
-
-use common::*;
-use linear_programming::Line;
-pub use obstacles::Obstacle;
-pub use visibility_set::VisibilitySet;
-
 // The contents of this file were primarily ported from Agent.cc from RVO2 with
 // significant alterations. As per the Apache-2.0 license, the original
 // copyright notice has been included, excluding those notices that do not
@@ -53,13 +46,11 @@ pub struct AvoidanceOptions {
 /*
 #[cfg(test)]
 mod tests {
-    use bevy::prelude::*;
-
     use super::*;
+    use bevy::prelude::*;
 
     mod get_line_for_neighbour_tests {
         use bevy::prelude::Vec2;
-
         use super::{Agent, Line};
 
         macro_rules! assert_line_eq {
@@ -268,4 +259,3 @@ mod tests {
         }
     }
 }
-*/

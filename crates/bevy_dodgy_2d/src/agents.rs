@@ -9,7 +9,6 @@ use std::borrow::Cow;
 
 #[derive(Component)]
 pub struct AgentGoal(pub Vec2);
-
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
 pub struct Agent {

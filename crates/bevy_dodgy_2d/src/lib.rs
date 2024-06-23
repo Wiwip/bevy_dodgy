@@ -1,5 +1,10 @@
 #![doc = include_str!("../README.md")]
 
+use crate::agents::{AgentGoal, AgentInfo};
+use bevy::ecs::query::QueryData;
+use bevy::prelude::{Component, Entity, Transform};
+use bevy_xpbd_2d::prelude::*;
+
 // The contents of this file were primarily ported from Agent.cc from RVO2 with
 // significant alterations. As per the Apache-2.0 license, the original
 // copyright notice has been included, excluding those notices that do not
@@ -22,6 +27,7 @@
 // <https://gamma.cs.unc.edu/RVO2/>
 pub mod agents;
 pub mod common;
+pub mod debug;
 mod linear_programming;
 mod obstacles;
 pub mod plugin;
@@ -43,6 +49,28 @@ pub struct AvoidanceOptions {
     /// How long in the future should collisions be considered for obstacles.
     pub obstacle_time_horizon: f32,
 }
+
+#[derive(QueryData)]
+#[query_data(derive(Debug))]
+pub struct AgentData {
+    entity: Entity,
+    info: &'static AgentInfo,
+    transform: &'static Transform,
+    goal: &'static AgentGoal,
+    options: &'static AvoidanceOptions,
+}
+
+#[derive(QueryData)]
+#[query_data(mutable, derive(Debug))]
+pub struct AgentDataMut {
+    entity: Entity,
+    info: &'static AgentInfo,
+    transform: &'static Transform,
+    linvel: &'static mut LinearVelocity,
+    goal: &'static AgentGoal,
+    options: &'static AvoidanceOptions,
+}
+
 /*
 #[cfg(test)]
 mod tests {
@@ -259,3 +287,4 @@ mod tests {
         }
     }
 }
+*/

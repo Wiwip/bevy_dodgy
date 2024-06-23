@@ -1,17 +1,18 @@
+use std::borrow::Cow;
+
+use bevy::prelude::*;
+
 use crate::common::determinant;
 use crate::linear_programming::{solve_linear_program, Line};
-use crate::{AvoidanceOptions, Obstacle};
-use bevy::ecs::system::QueryLens;
-use bevy::prelude::*;
-use bevy_xpbd_2d::components::LinearVelocity;
-use std::borrow::Cow;
-//use crate::obstacles::get_lines_for_agent_to_obstacle;
+use crate::obstacles::{get_lines_for_agent_to_obstacle, Obstacle};
+use crate::{AgentDataMutReadOnlyItem, AvoidanceOptions};
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct AgentGoal(pub Vec2);
+
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
-pub struct Agent {
+pub struct AgentInfo {
     /// The radius of the agent. Agents will use this to avoid bumping into each
     /// other.
     pub radius: f32,
@@ -26,14 +27,13 @@ pub struct Agent {
 }
 
 pub fn compute_avoiding_velocity(
-    agent: Entity,
-    mut neighbours: Vec<Entity>,
-    query: &mut QueryLens<(&Agent, &Transform, &LinearVelocity, &AvoidanceOptions)>,
+    agent: &AgentDataMutReadOnlyItem,
+    mut neighbours: &Vec<AgentDataMutReadOnlyItem>,
     obstacles: &[Cow<'_, Obstacle>],
     preferred_velocity: Vec2,
     max_speed: f32,
     time_step: f32,
-    avoidance_options: &AvoidanceOptions,
+    options: &AvoidanceOptions,
 ) -> Vec2 {
     assert!(
         time_step > 0.0,
@@ -44,22 +44,15 @@ pub fn compute_avoiding_velocity(
     let lines = obstacles
         .iter()
         .flat_map(|o| {
-            /*self.get_lines_for_agent_to_obstacle(
-                self,
-                o,
-                avoidance_options.obstacle_margin,
-                avoidance_options.obstacle_time_horizon,
-            )*/
-            None
-        })
-        .chain(neighbours.iter().map(|&neighbour| {
-            get_line_for_neighbour(
+            get_lines_for_agent_to_obstacle(
                 agent,
-                neighbour,
-                query,
-                avoidance_options.time_horizon,
-                time_step,
+                o,
+                options.obstacle_margin,
+                options.obstacle_time_horizon,
             )
+        })
+        .chain(neighbours.iter().map(|neighbour| {
+            get_line_for_neighbour(agent, neighbour, options.time_horizon, time_step)
         }))
         .collect::<Vec<Line>>();
 
@@ -71,9 +64,8 @@ pub fn compute_avoiding_velocity(
 }
 
 fn get_line_for_neighbour(
-    agent: Entity,
-    neighbour: Entity,
-    query_lens: &mut QueryLens<(&Agent, &Transform, &LinearVelocity, &AvoidanceOptions)>,
+    agent: &AgentDataMutReadOnlyItem,
+    neighbour: &AgentDataMutReadOnlyItem,
     time_horizon: f32,
     time_step: f32,
 ) -> Line {
@@ -86,13 +78,17 @@ fn get_line_for_neighbour(
     // If the relative position and velocity is used, the cut-off for the shadow
     // will be directed toward the origin.
 
-    let binding = query_lens.query();
-    let (agent_info, agent_position, agent_velocity, agent_option) = binding.get(agent).unwrap();
-    let (nb_info, nb_transform, nb_velocity, nb_option) = binding.get(neighbour).unwrap();
+    let agent_info = agent.info;
+    let nb_info = neighbour.info;
 
-    let relative_neighbour_position =
-        nb_transform.translation.xy() - agent_position.translation.xy();
-    let relative_agent_velocity = agent_velocity.0 - nb_velocity.0;
+    let agent_position = agent.transform.translation.xy();
+    let nb_position = neighbour.transform.translation.xy();
+
+    let agent_velocity = agent.linvel.0;
+    let nb_velocity = neighbour.linvel.0;
+
+    let relative_neighbour_position = nb_position - agent_position;
+    let relative_agent_velocity = agent_velocity - nb_velocity;
 
     let distance_squared = relative_neighbour_position.length_squared();
 
@@ -135,7 +131,7 @@ fn get_line_for_neighbour(
         // `relative_neighbour_position`.
         if dot < 0.0
             && dot * dot
-            > sum_radius_squared * cutoff_circle_center_to_relative_velocity_length_squared
+                > sum_radius_squared * cutoff_circle_center_to_relative_velocity_length_squared
         {
             // The relative velocity has not gone past the cut-off circle tangent
             // points yet, so project onto the cut-off circle.
@@ -168,7 +164,7 @@ fn get_line_for_neighbour(
                 relative_neighbour_position,
                 cutoff_circle_center_to_relative_velocity,
             )
-                .signum();
+            .signum();
 
             // Compute the shadow direction using the tangent triangle legs, and
             // make sure to use the correct orientation of that direction (the
@@ -217,7 +213,7 @@ fn get_line_for_neighbour(
     };
 
     Line {
-        point: agent_velocity.0 + u * responsibility,
+        point: agent_velocity + u * responsibility,
         direction: -vo_normal.perp(),
     }
 }

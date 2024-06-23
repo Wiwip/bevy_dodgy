@@ -2,12 +2,12 @@ use bevy::app::{App, Startup, Update};
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::*;
 use bevy::DefaultPlugins;
+use bevy_dodgy_2d::agents::{AgentGoal, AgentInfo};
+use bevy_dodgy_2d::plugin::DodgyPlugin;
+use bevy_dodgy_2d::AvoidanceOptions;
 use bevy_xpbd_2d::components::{CollisionLayers, LayerMask, RigidBody};
 use bevy_xpbd_2d::plugins::{PhysicsDebugPlugin, PhysicsPlugins};
 use bevy_xpbd_2d::prelude::{DebugRender, Gravity};
-use bevy_dodgy_2d::agents::{Agent, AgentGoal};
-use bevy_dodgy_2d::AvoidanceOptions;
-use bevy_dodgy_2d::plugin::DodgyPlugin;
 
 fn main() {
     App::new()
@@ -29,7 +29,7 @@ fn setup(mut commands: Commands) {
         let point = point_on_circle((0., 0.), 400., theta);
 
         commands
-            .spawn(Agent {
+            .spawn(AgentInfo {
                 radius: 12.0,
                 avoidance_responsibility: 1.0,
                 max_speed: 30.0,
@@ -49,7 +49,7 @@ fn setup(mut commands: Commands) {
 
         // Spawn agents without RVO
         commands
-            .spawn(Agent {
+            .spawn(AgentInfo {
                 radius: 12.0,
                 avoidance_responsibility: 1.0,
                 max_speed: 30.0,

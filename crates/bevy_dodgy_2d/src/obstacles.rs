@@ -19,10 +19,16 @@
 //
 // <https://gamma.cs.unc.edu/RVO2/>
 
+use crate::agents::AgentInfo;
+use crate::common::determinant;
+use crate::linear_programming::Line;
+use crate::{AgentData, AgentDataMutReadOnlyItem};
+use bevy::ecs::system::QueryLens;
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::Collider;
-
-use crate::{common::determinant, Line};
+use bevy::reflect::Array;
+use bevy_xpbd_2d::components::LinearVelocity;
+use bevy_xpbd_2d::parry::math::Vector;
+use bevy_xpbd_2d::parry::shape::{Shape, TypedShape};
 
 /// A single obstacle in the simulation.
 #[derive(Clone, PartialEq, Debug)]
@@ -38,12 +44,12 @@ pub enum Obstacle {
     /// obstacle, so the left of the edge is solid, and the right is clear.
     Open { vertices: Vec<Vec2> },
 }
-/*
+
 /// Computes the lines describing the half-planes of valid velocities for
 /// `agent` induced by `obstacle`. `time_horizon` determines how much time in
 /// the future should collisions be considered for this obstacle.
 pub fn get_lines_for_agent_to_obstacle(
-    agent: &Agent,
+    agent: &AgentDataMutReadOnlyItem,
     obstacle: &Obstacle,
     obstacle_margin: f32,
     time_horizon: f32,
@@ -63,15 +69,13 @@ pub fn get_lines_for_agent_to_obstacle(
         ),
     }
 }
-*/
-/*
-fn get_lines_for_agent_to_obstacle_const<const CLOSED: bool>(
-    agent: &Agent,
+
+pub fn get_lines_for_agent_to_obstacle_const<const CLOSED: bool>(
+    agent: &AgentDataMutReadOnlyItem,
     vertices: &[Vec2],
     obstacle_margin: f32,
     time_horizon: f32,
 ) -> Vec<Line> {
-
     let convexity = {
         let mut convexity = Vec::with_capacity(vertices.len());
         for i in 0..vertices.len() {
@@ -121,8 +125,6 @@ fn get_lines_for_agent_to_obstacle_const<const CLOSED: bool>(
 
             let left_vertex = edge_vertex_for_index(left_index);
             let right_vertex = edge_vertex_for_index(right_index);
-
-
 
             if let Some(line) = get_line_for_agent_to_edge(
                 agent,
@@ -176,8 +178,8 @@ struct EdgeVertex {
     convex: bool,
 }
 
-fn get_line_for_agent_to_edge(
-    agent: &Agent,
+pub fn get_line_for_agent_to_edge(
+    agent: &AgentDataMutReadOnlyItem,
     mut left_vertex: EdgeVertex,
     mut right_vertex: EdgeVertex,
     mut left_left_vertex: Option<Vec2>,
@@ -186,8 +188,8 @@ fn get_line_for_agent_to_edge(
     time_horizon: f32,
     existing_lines: &[Line],
 ) -> Option<Line> {
-    let relative_left_vertex = left_vertex.point - agent.position;
-    let relative_right_vertex = right_vertex.point - agent.position;
+    let relative_left_vertex = left_vertex.point - agent.transform.translation.xy();
+    let relative_right_vertex = right_vertex.point - agent.transform.translation.xy();
 
     let edge_vector = right_vertex.point - left_vertex.point;
     let agent_from_left_vertex = -relative_left_vertex;
@@ -424,8 +426,8 @@ fn get_line_for_agent_to_edge(
     // The previously computed relative positions are no longer valid since it is
     // possible the vertices were swapped around when computing the shadow
     // directions.
-    let left_cutoff = (left_vertex.point - agent.position) / time_horizon;
-    let right_cutoff = (right_vertex.point - agent.position) / time_horizon;
+    let left_cutoff = (left_vertex.point - agent.transform.translation.xy()) / time_horizon;
+    let right_cutoff = (right_vertex.point - agent.transform.translation.xy()) / time_horizon;
     let cutoff_vector = right_cutoff - left_cutoff;
 
     let is_degenerate_edge = left_vertex.point == right_vertex.point;
@@ -437,7 +439,7 @@ fn get_line_for_agent_to_edge(
     // zero velocity, the agent has trouble getting around corners (since the
     // agent's position will then project to the corner much longer than if the
     // velocity is used).
-    let velocity = agent.velocity;
+    let velocity = agent.linvel.0;
 
     // Compute the time along the cutoff edge where the velocity projects to.
     // Note if the edge is degenerate, just pretend the velocity is halfway on the
@@ -532,8 +534,35 @@ fn get_line_for_agent_to_edge(
         }
     }
 }
-*/
 
+pub fn collider_as_obstacle(shape: TypedShape, tf: &Transform) -> Option<Obstacle> {
+    match shape {
+        TypedShape::Cuboid(shape) => {
+            let rect = rect_inner(Vec2::from(shape.half_extents * 2.0));
+
+            let [tl, tr, br, bl] = rect.map(|vec2| tf.transform_point(vec2.extend(0.5)).xy());
+
+            Some(Obstacle::Closed {
+                vertices: vec![tl, tr, br, bl],
+            })
+        }
+
+        _ => {
+            warn_once!("The shape isn't supported.");
+            None
+        }
+    }
+}
+
+fn rect_inner(size: Vec2) -> [Vec2; 4] {
+    let half_size = size / 2.;
+    let tl = Vec2::new(-half_size.x, half_size.y);
+    let tr = Vec2::new(half_size.x, half_size.y);
+    let bl = Vec2::new(-half_size.x, -half_size.y);
+    let br = Vec2::new(half_size.x, -half_size.y);
+    //[tl, tr, br, bl]
+    [tr, tl, bl, br]
+}
 
 /*
 #[cfg(test)]

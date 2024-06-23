@@ -19,7 +19,7 @@
 //
 // <https://gamma.cs.unc.edu/RVO2/>
 
-use crate::determinant;
+use crate::common::determinant;
 use bevy::prelude::*;
 
 /// A half-plane to act as a constraint on the linear program. This is

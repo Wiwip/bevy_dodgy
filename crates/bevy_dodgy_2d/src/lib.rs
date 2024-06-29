@@ -1,9 +1,11 @@
 #![doc = include_str!("../README.md")]
 
-use crate::agents::{AgentGoal, AgentInfo};
+use bevy::app::{App, Plugin, PreUpdate, Update};
 use bevy::ecs::query::QueryData;
-use bevy::prelude::{Component, Entity, Transform};
+use bevy::prelude::*;
 use bevy_xpbd_2d::prelude::*;
+
+use crate::system::{on_add_create_collider, rvo_avoidance};
 
 // The contents of this file were primarily ported from Agent.cc from RVO2 with
 // significant alterations. As per the Apache-2.0 license, the original
@@ -30,11 +32,19 @@ pub mod common;
 pub mod debug;
 mod linear_programming;
 mod obstacles;
-pub mod plugin;
 pub mod system;
 mod visibility_set;
 
-//use obstacles::get_lines_for_agent_to_obstacle;
+
+pub struct DodgyPlugin;
+
+impl Plugin for DodgyPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(PreUpdate, on_add_create_collider)
+            .add_systems(Update, rvo_avoidance);
+    }
+}
+
 
 /// Parameters for computing the avoidance vector.
 #[derive(Component, Clone, PartialEq, Debug)]
@@ -50,36 +60,19 @@ pub struct AvoidanceOptions {
     pub obstacle_time_horizon: f32,
 }
 
-#[derive(QueryData)]
-#[query_data(derive(Debug))]
-pub struct AgentData {
-    entity: Entity,
-    info: &'static AgentInfo,
-    transform: &'static Transform,
-    goal: &'static AgentGoal,
-    options: &'static AvoidanceOptions,
-}
 
-#[derive(QueryData)]
-#[query_data(mutable, derive(Debug))]
-pub struct AgentDataMut {
-    entity: Entity,
-    info: &'static AgentInfo,
-    transform: &'static Transform,
-    linvel: &'static mut LinearVelocity,
-    goal: &'static AgentGoal,
-    options: &'static AvoidanceOptions,
-}
 
-/*
 #[cfg(test)]
 mod tests {
-    use super::*;
     use bevy::prelude::*;
+
+    use super::*;
 
     mod get_line_for_neighbour_tests {
         use bevy::prelude::Vec2;
-        use super::{Agent, Line};
+        use crate::agents::Agent;
+        use crate::linear_programming::Line;
+
 
         macro_rules! assert_line_eq {
             ($a: expr, $b: expr) => {{
@@ -287,4 +280,4 @@ mod tests {
         }
     }
 }
-*/
+

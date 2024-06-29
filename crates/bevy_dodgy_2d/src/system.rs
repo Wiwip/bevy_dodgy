@@ -1,51 +1,46 @@
 use std::borrow::Cow;
-use std::time::{Duration, Instant};
-
+use std::time::Instant;
 use bevy::prelude::*;
-use bevy_xpbd_2d::parry::query::PointQuery;
-use bevy_xpbd_2d::parry::shape::{SharedShape, TypedShape};
 use bevy_xpbd_2d::prelude::*;
 
-use crate::agents::AgentGoal;
-use crate::agents::{compute_avoiding_velocity, AgentInfo};
-use crate::obstacles::{collider_as_obstacle, Obstacle};
-use crate::{
-    AgentData, AgentDataItem, AgentDataMut, AgentDataMutReadOnly, AgentDataMutReadOnlyItem,
-    AvoidanceOptions,
-};
+use crate::agents::{AgentInfo, AgentData, AgentDataMut, AgentDataMutReadOnlyItem, Agent};
+use crate::obstacles::{Obstacle};
+
 
 pub fn rvo_avoidance(
     agents: Query<AgentData>,
-    mut query: Query<(AgentDataMut, &Collider, &RigidBody)>,
+    mut query: Query<(AgentDataMut, &RigidBody)>,
     q_obstacles: Query<(&Transform, &Collider, &RigidBody)>,
     spatial: SpatialQuery,
     time: Res<Time>,
-    mut gizmos: Gizmos,
 ) {
     if !(time.delta_seconds() > 0.0) {
         return;
     }
 
+    let now = Instant::now();
+
     for agent in agents.iter() {
-        let (agent_data, _, _) = query.get(agent.entity).unwrap();
+        let (agent_data, _) = query.get(agent.entity).unwrap();
+        let dodgy_agent = Agent::from(&agent_data);
 
         let intersections = spatial.shape_intersections(
             &Collider::circle(
                 agent.info.radius + (agent.options.time_horizon * agent.info.max_speed / 2.0),
             ), // Shape
-            agent.transform.translation.xy(), // Shape position
-            0.0,                              // Shape rotation
-            SpatialQueryFilter::default().with_excluded_entities([agent.entity]), // Query filter
+            agent.transform.translation.xy(),
+            0.0,
+            SpatialQueryFilter::default().with_excluded_entities([agent.entity]), // Exclude self
         );
 
         // Filter the intersected entities to return only dynamic agents
-        let neighbours: Vec<AgentDataMutReadOnlyItem> = intersections
+        let neighbours: Vec<Agent> = intersections
             .clone()
             .into_iter()
             .filter_map(|e| {
-                if let Ok((data, _, body)) = query.get(e) {
+                if let Ok((data, body)) = query.get(e) {
                     if body.is_dynamic() {
-                        return Some(data);
+                        return Some(Agent::from(&data));
                     }
                 };
                 None
@@ -65,20 +60,18 @@ pub fn rvo_avoidance(
 
             // Only static bodies are considered for obstacles
             match body {
-                RigidBody::Dynamic => { /* Ignore rigid bodies*/ }
+                RigidBody::Dynamic => { /* Ignore rigid bodies. */ }
                 RigidBody::Static => {
-                    if let Some(obstacle) =
-                        collider_as_obstacle(collider.shape_scaled().as_typed_shape(), obstacle_tf)
-                    {
+                    if let Ok(mut obstacle) = Obstacle::try_from(collider) {
+                        obstacle.transform(obstacle_tf);
                         obstacles.push(Cow::Owned(obstacle));
                     }
                 }
-                RigidBody::Kinematic => { /* Consider kinematic bodies such as a player? */ }
+                RigidBody::Kinematic => { /* Ignore kinematic bodies. */ }
             }
         }
 
-        let avoidance_velocity = compute_avoiding_velocity(
-            &agent_data,
+        let avoidance_velocity = dodgy_agent.compute_avoiding_velocity(
             &neighbours,
             &obstacles,
             preferred_velocity,
@@ -87,19 +80,15 @@ pub fn rvo_avoidance(
             agent.options,
         );
 
-        if let Ok((mut agent, _, _)) = query.get_mut(agent.entity) {
+        if let Ok((mut agent, _)) = query.get_mut(agent.entity) {
             agent.linvel.0 = avoidance_velocity;
         }
-
-        gizmos.line(
-            agent.transform.translation,
-            agent.transform.translation + avoidance_velocity.extend(0.),
-            Color::SEA_GREEN,
-        );
     }
+
+    info!("Elapsed: {:?}", now.elapsed());
 }
 
-pub(crate) fn create_collider(
+pub(crate) fn on_add_create_collider(
     mut commands: Commands,
     query: Query<(Entity, &AgentInfo, Option<&Collider>), Added<AgentInfo>>,
 ) {

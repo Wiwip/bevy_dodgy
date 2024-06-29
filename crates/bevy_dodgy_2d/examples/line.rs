@@ -4,8 +4,7 @@ use bevy_xpbd_2d::prelude::*;
 
 use bevy_dodgy_2d::agents::AgentGoal;
 use bevy_dodgy_2d::agents::AgentInfo;
-use bevy_dodgy_2d::plugin::DodgyPlugin;
-use bevy_dodgy_2d::AvoidanceOptions;
+use bevy_dodgy_2d::{AvoidanceOptions, DodgyPlugin};
 
 fn main() {
     App::new()

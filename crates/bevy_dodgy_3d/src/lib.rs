@@ -20,7 +20,6 @@
 //
 // <https://gamma.cs.unc.edu/RVO2/>
 mod linear_programming;
-mod simulator;
 
 use std::borrow::Cow;
 

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::time::Instant;
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 use crate::agents::{AgentInfo, AgentData, AgentDataMut, AgentDataMutReadOnlyItem, Agent};
 use crate::obstacles::{Obstacle};
@@ -25,11 +25,11 @@ pub fn rvo_avoidance(
         let dodgy_agent = Agent::from(&agent_data);
 
         let intersections = spatial.shape_intersections(
-            &Collider::circle(
+            &Collider::sphere(
                 agent.info.radius + (agent.options.time_horizon * agent.info.max_speed / 2.0),
             ), // Shape
-            agent.transform.translation.xy(),
-            0.0,
+            agent.transform.translation,
+            Quat::IDENTITY,
             SpatialQueryFilter::default().with_excluded_entities([agent.entity]), // Exclude self
         );
 
@@ -81,7 +81,7 @@ pub fn rvo_avoidance(
         );
 
         if let Ok((mut agent, _)) = query.get_mut(agent.entity) {
-            agent.linvel.0 = avoidance_velocity;
+            agent.linvel.0 = avoidance_velocity.extend(0.);
         }
     }
 
@@ -94,7 +94,7 @@ pub(crate) fn on_add_create_collider(
 ) {
     for (e, agent, option_collider) in query.iter() {
         if option_collider.is_none() {
-            commands.entity(e).insert(Collider::circle(agent.radius));
+            commands.entity(e).insert(Collider::sphere(agent.radius));
         }
     }
 }

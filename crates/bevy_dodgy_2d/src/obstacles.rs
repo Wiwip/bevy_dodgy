@@ -25,10 +25,8 @@ use crate::linear_programming::Line;
 use bevy::ecs::system::QueryLens;
 use bevy::prelude::*;
 use bevy::reflect::Array;
-use bevy_xpbd_2d::components::LinearVelocity;
-use bevy_xpbd_2d::parry::math::Vector;
-use bevy_xpbd_2d::parry::shape::{Shape, TypedShape};
-use bevy_xpbd_2d::prelude::Collider;
+use bevy_xpbd_3d::parry::shape::TypedShape;
+use bevy_xpbd_3d::prelude::*;
 
 /// A single obstacle in the simulation.
 #[derive(Clone, PartialEq, Debug)]
@@ -70,7 +68,7 @@ impl TryFrom<&Collider> for Obstacle {
         let shape = collider.shape_scaled().as_typed_shape();
         match shape {
             TypedShape::Cuboid(cuboid) => {
-                let [tr, tl, bl, br] = rect_inner(Vec2::from(cuboid.half_extents * 2.0));
+                let [tr, tl, bl, br] = rect_inner(Vec3::from(cuboid.half_extents * 2.0));
 
                 Ok(Obstacle::Closed {
                     vertices: vec![tr, tl, bl, br],
@@ -84,23 +82,6 @@ impl TryFrom<&Collider> for Obstacle {
         }
     }
 }
-
-/*
-pub fn collider_as_obstacle(shape: TypedShape, tf: &Transform) -> Option<Obstacle> {
-    match shape {
-        TypedShape::Cuboid(shape) => {
-            let [tr, tl, bl, br] = rect_inner(Vec2::from(shape.half_extents * 2.0));
-
-            Some(Obstacle::Closed {
-                vertices: vec![tr, tl, bl, br],
-            })
-        }
-
-        _ => {
-
-        }
-    }
-}*/
 
 /// Computes the lines describing the half-planes of valid velocities for
 /// `agent` induced by `obstacle`. `time_horizon` determines how much time in
@@ -592,7 +573,7 @@ pub fn get_line_for_agent_to_edge(
     }
 }
 
-fn rect_inner(size: Vec2) -> [Vec2; 4] {
+fn rect_inner(size: Vec3) -> [Vec2; 4] {
     let half_size = size / 2.;
     let tl = Vec2::new(-half_size.x, half_size.y);
     let tr = Vec2::new(half_size.x, half_size.y);

@@ -1,6 +1,6 @@
 use bevy::asset::AssetContainer;
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 use rand::Rng;
 
 use bevy_dodgy_2d::agents::AgentGoal;
@@ -16,7 +16,7 @@ fn main() {
         .add_plugins(DodgyPlugin)
         .add_plugins(DodgyDebugPlugin)
         .add_systems(Startup, setup)
-        .insert_resource(Gravity(Vec2::ZERO))
+        .insert_resource(Gravity(Vec3::ZERO))
         .run();
 }
 
@@ -55,8 +55,9 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         RigidBody::Static,
         TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
-        Collider::rectangle(50.0, 150.0),
+        Collider::cuboid(50.0, 150.0, 10.0),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Color::ORANGE),
     ));
+
 }

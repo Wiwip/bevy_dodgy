@@ -3,7 +3,7 @@
 use bevy::app::{App, Plugin, PreUpdate, Update};
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 use crate::system::{on_add_create_collider, rvo_avoidance};
 

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
-use bevy_xpbd_2d::components::LinearVelocity;
+use bevy_xpbd_3d::prelude::*;
 use crate::{AvoidanceOptions};
 use crate::common::determinant;
 use crate::linear_programming::{Line, solve_linear_program};
@@ -70,7 +70,7 @@ impl From<&AgentDataMutReadOnlyItem<'_>> for Agent {
     fn from(value: &AgentDataMutReadOnlyItem) -> Self {
         Self {
             position: value.transform.translation.xy(),
-            velocity: **value.linvel,
+            velocity: value.linvel.0.xy(),
             radius: value.info.radius,
             avoidance_responsibility: value.info.avoidance_responsibility,
         }

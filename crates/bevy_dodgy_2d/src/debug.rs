@@ -1,7 +1,7 @@
 use crate::obstacles::{Obstacle};
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 pub struct DodgyDebugPlugin;
 
@@ -34,6 +34,6 @@ fn display_collider(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmo
 
 fn display_agent_velocity(query: Query<(&Transform, &LinearVelocity)>, mut gizmos: Gizmos) {
     for (tf, linvel) in query.iter() {
-        gizmos.line_2d(tf.translation.xy(), tf.translation.xy() + linvel.0, Color::SEA_GREEN)
+        gizmos.line_2d(tf.translation.xy(), tf.translation.xy() + linvel.0.xy(), Color::SEA_GREEN)
     }
 }

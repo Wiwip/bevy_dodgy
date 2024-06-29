@@ -33,7 +33,7 @@ pub struct AgentData {
     pub entity: Entity,
     pub info: &'static AgentInfo,
     pub transform: &'static Transform,
-    pub goal: &'static AgentGoal,
+    pub goal: Option<&'static AgentGoal>,
     pub options: &'static AvoidanceOptions,
 }
 
@@ -44,7 +44,7 @@ pub struct AgentDataMut {
     pub info: &'static AgentInfo,
     pub transform: &'static Transform,
     pub linvel: &'static mut LinearVelocity,
-    pub goal: &'static AgentGoal,
+    pub goal: Option<&'static AgentGoal>,
     pub options: &'static AvoidanceOptions,
 }
 

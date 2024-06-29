@@ -44,7 +44,12 @@ pub fn rvo_avoidance(
             })
             .collect();
 
-        let preferred_velocity = (agent.goal.0.xz() - agent.transform.translation.xz())
+        // If the agent has no goal, ignore.
+        let Some(agent_goal) = agent.goal else {
+            continue;
+        };
+
+        let preferred_velocity = (agent_goal.0.xz() - agent.transform.translation.xz())
             .normalize_or_zero()
             * agent.info.max_speed;
 

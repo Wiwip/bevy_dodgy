@@ -1,4 +1,4 @@
-use crate::obstacles::{Obstacle};
+use crate::obstacles::Obstacle;
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
@@ -7,11 +7,11 @@ pub struct DodgyDebugPlugin;
 
 impl Plugin for DodgyDebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostUpdate, (display_collider, display_agent_velocity));
+        app.add_systems(PostUpdate, (display_dodgy_obstacles, display_agent_velocity));
     }
 }
 
-fn display_collider(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmos: Gizmos) {
+fn display_dodgy_obstacles(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmos: Gizmos) {
     for (tf, body, collider) in query.iter() {
         if body.is_dynamic() || body.is_kinematic() {
             continue;
@@ -22,10 +22,23 @@ fn display_collider(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmo
 
             match obstacle {
                 Obstacle::Closed { vertices } => {
-                    gizmos.linestrip_2d(vertices, Color::PURPLE);
+                    let mut vertices_3d: Vec<Vec3> = vertices.iter().map(|v|{
+                        Vec3::new(v.x, 1., v.y)
+                    }).collect();
+
+                    if !vertices_3d.is_empty() {
+                        vertices_3d.push(vertices_3d[0]); // Adds a line to close the shape
+                    }
+
+                    gizmos.linestrip(vertices_3d, Color::PURPLE);
                 }
                 Obstacle::Open { vertices } => {
-                    gizmos.linestrip_2d(vertices, Color::PURPLE);
+                    let vertices_3d: Vec<Vec3> = vertices.iter().map(|v|{
+                        Vec3::new(v.x, 1., v.y)
+                    }).collect();
+
+
+                    gizmos.linestrip(vertices_3d, Color::DARK_GREEN);
                 }
             }
         }
@@ -34,6 +47,6 @@ fn display_collider(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmo
 
 fn display_agent_velocity(query: Query<(&Transform, &LinearVelocity)>, mut gizmos: Gizmos) {
     for (tf, linvel) in query.iter() {
-        gizmos.line_2d(tf.translation.xy(), tf.translation.xy() + linvel.0.xy(), Color::SEA_GREEN)
+        gizmos.line(tf.translation, tf.translation + linvel.0, Color::SEA_GREEN)
     }
 }

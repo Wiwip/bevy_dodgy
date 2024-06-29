@@ -1,11 +1,10 @@
 use std::borrow::Cow;
-use std::time::Instant;
+
 use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
 
-use crate::agents::{AgentInfo, AgentData, AgentDataMut, AgentDataMutReadOnlyItem, Agent};
-use crate::obstacles::{Obstacle};
-
+use crate::agents::{Agent, AgentData, AgentDataMut, AgentInfo};
+use crate::obstacles::Obstacle;
 
 pub fn rvo_avoidance(
     agents: Query<AgentData>,
@@ -18,16 +17,14 @@ pub fn rvo_avoidance(
         return;
     }
 
-    let now = Instant::now();
-
     for agent in agents.iter() {
         let (agent_data, _) = query.get(agent.entity).unwrap();
         let dodgy_agent = Agent::from(&agent_data);
 
         let intersections = spatial.shape_intersections(
             &Collider::sphere(
-                agent.info.radius + (agent.options.time_horizon * agent.info.max_speed / 2.0),
-            ), // Shape
+                agent.info.radius + agent.options.time_horizon * agent.info.max_speed,
+            ),
             agent.transform.translation,
             Quat::IDENTITY,
             SpatialQueryFilter::default().with_excluded_entities([agent.entity]), // Exclude self
@@ -47,7 +44,7 @@ pub fn rvo_avoidance(
             })
             .collect();
 
-        let preferred_velocity = (agent.goal.0 - agent.transform.translation.xy())
+        let preferred_velocity = (agent.goal.0.xz() - agent.transform.translation.xz())
             .normalize_or_zero()
             * agent.info.max_speed;
 
@@ -81,11 +78,9 @@ pub fn rvo_avoidance(
         );
 
         if let Ok((mut agent, _)) = query.get_mut(agent.entity) {
-            agent.linvel.0 = avoidance_velocity.extend(0.);
+            agent.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y)
         }
     }
-
-    info!("Elapsed: {:?}", now.elapsed());
 }
 
 pub(crate) fn on_add_create_collider(
@@ -94,7 +89,7 @@ pub(crate) fn on_add_create_collider(
 ) {
     for (e, agent, option_collider) in query.iter() {
         if option_collider.is_none() {
-            commands.entity(e).insert(Collider::sphere(agent.radius));
+            commands.entity(e).insert(Collider::capsule(18.0, agent.radius));
         }
     }
 }

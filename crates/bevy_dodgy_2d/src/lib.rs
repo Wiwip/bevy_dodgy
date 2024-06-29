@@ -35,7 +35,6 @@ mod obstacles;
 pub mod system;
 mod visibility_set;
 
-
 pub struct DodgyPlugin;
 
 impl Plugin for DodgyPlugin {
@@ -44,7 +43,6 @@ impl Plugin for DodgyPlugin {
             .add_systems(Update, rvo_avoidance);
     }
 }
-
 
 /// Parameters for computing the avoidance vector.
 #[derive(Component, Clone, PartialEq, Debug)]
@@ -60,8 +58,6 @@ pub struct AvoidanceOptions {
     pub obstacle_time_horizon: f32,
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use bevy::prelude::*;
@@ -69,10 +65,9 @@ mod tests {
     use super::*;
 
     mod get_line_for_neighbour_tests {
-        use bevy::prelude::Vec2;
         use crate::agents::Agent;
         use crate::linear_programming::Line;
-
+        use bevy::prelude::Vec2;
 
         macro_rules! assert_line_eq {
             ($a: expr, $b: expr) => {{
@@ -280,4 +275,3 @@ mod tests {
         }
     }
 }
-

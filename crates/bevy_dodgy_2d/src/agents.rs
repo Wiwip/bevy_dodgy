@@ -1,14 +1,15 @@
-use std::borrow::Cow;
+use crate::common::determinant;
+use crate::linear_programming::{solve_linear_program, Line};
+use crate::obstacles::{get_lines_for_agent_to_obstacle, Obstacle};
+use crate::AvoidanceOptions;
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
-use crate::{AvoidanceOptions};
-use crate::common::determinant;
-use crate::linear_programming::{Line, solve_linear_program};
-use crate::obstacles::{get_lines_for_agent_to_obstacle, Obstacle};
+use std::borrow::Cow;
+use bevy::utils::petgraph::matrix_graph::Zero;
 
 #[derive(Component, Debug)]
-pub struct AgentGoal(pub Vec2);
+pub struct AgentGoal(pub Vec3);
 
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
@@ -25,7 +26,6 @@ pub struct AgentInfo {
 
     pub max_speed: f32,
 }
-
 
 #[derive(QueryData)]
 #[query_data(derive(Debug))]
@@ -48,7 +48,6 @@ pub struct AgentDataMut {
     pub options: &'static AvoidanceOptions,
 }
 
-
 pub(crate) struct Agent {
     /// The position of the agent.
     pub position: Vec2,
@@ -69,8 +68,8 @@ pub(crate) struct Agent {
 impl From<&AgentDataMutReadOnlyItem<'_>> for Agent {
     fn from(value: &AgentDataMutReadOnlyItem) -> Self {
         Self {
-            position: value.transform.translation.xy(),
-            velocity: value.linvel.0.xy(),
+            position: value.transform.translation.xz(),
+            velocity: value.linvel.xz(),
             radius: value.info.radius,
             avoidance_responsibility: value.info.avoidance_responsibility,
         }
@@ -129,6 +128,8 @@ impl Agent {
         //
         // If the relative position and velocity is used, the cut-off for the shadow
         // will be directed toward the origin.
+        assert!(!time_horizon.is_zero(), "time_horizon cannot be zero.");
+
         let nb_position = neighbour.position;
 
         let agent_velocity = self.velocity;
@@ -176,9 +177,8 @@ impl Agent {
             // right triangles with those tangents, and the angle between
             // `cutoff_circle_center_to_relative_velocity` and
             // `relative_neighbour_position`.
-            if dot < 0.0
-                && dot * dot
-                > sum_radius_squared * cutoff_circle_center_to_relative_velocity_length_squared
+            if dot < 0.0 && dot * dot
+                    > sum_radius_squared * cutoff_circle_center_to_relative_velocity_length_squared
             {
                 // The relative velocity has not gone past the cut-off circle tangent
                 // points yet, so project onto the cut-off circle.
@@ -211,7 +211,7 @@ impl Agent {
                     relative_neighbour_position,
                     cutoff_circle_center_to_relative_velocity,
                 )
-                    .signum();
+                .signum();
 
                 // Compute the shadow direction using the tangent triangle legs, and
                 // make sure to use the correct orientation of that direction (the
@@ -244,7 +244,8 @@ impl Agent {
             vo_normal = (relative_agent_velocity - cutoff_circle_center).normalize_or_zero();
             // Get the point on the cut-off circle in that direction (which is the
             // agent's velocity projected to the circle).
-            relative_velocity_projected_to_vo = vo_normal * cutoff_circle_radius + cutoff_circle_center;
+            relative_velocity_projected_to_vo =
+                vo_normal * cutoff_circle_radius + cutoff_circle_center;
             inside_vo = true;
         }
 

@@ -19,7 +19,7 @@
 //
 // <https://gamma.cs.unc.edu/RVO2/>
 
-use crate::agents::{AgentDataMutReadOnlyItem, AgentInfo, Agent};
+use crate::agents::{Agent, AgentDataMutReadOnlyItem, AgentInfo};
 use crate::common::determinant;
 use crate::linear_programming::Line;
 use bevy::ecs::system::QueryLens;
@@ -48,13 +48,14 @@ impl Obstacle {
         match self {
             Obstacle::Closed { vertices } => {
                 vertices.iter_mut().for_each(|mut vec2| {
-                    let _ = tf.transform_point(vec2.extend(0.)).xy();
+                    let pt = Vec3::new(vec2.x, 0., vec2.y);
+                    let _ = tf.transform_point(pt).xz();
                 });
-
             }
             Obstacle::Open { vertices } => {
                 vertices.iter_mut().for_each(|mut vec2| {
-                    let _ = tf.transform_point(vec2.extend(0.)).xy();
+                    let pt = Vec3::new(vec2.x, 0., vec2.y);
+                    let _ = tf.transform_point(pt).xz();
                 });
             }
         }
@@ -257,7 +258,7 @@ pub fn get_line_for_agent_to_edge(
             if determinant(left_vertex / time_horizon - line.point, line.direction)
                 >= edge_margin / time_horizon - EDGE_COVER_EPSILON
                 && determinant(right_vertex / time_horizon - line.point, line.direction)
-                >= edge_margin / time_horizon - EDGE_COVER_EPSILON
+                    >= edge_margin / time_horizon - EDGE_COVER_EPSILON
             {
                 return true;
             }
@@ -575,13 +576,12 @@ pub fn get_line_for_agent_to_edge(
 
 fn rect_inner(size: Vec3) -> [Vec2; 4] {
     let half_size = size / 2.;
-    let tl = Vec2::new(-half_size.x, half_size.y);
-    let tr = Vec2::new(half_size.x, half_size.y);
-    let bl = Vec2::new(-half_size.x, -half_size.y);
-    let br = Vec2::new(half_size.x, -half_size.y);
+    let tl = Vec2::new(-half_size.x, half_size.z);
+    let tr = Vec2::new(half_size.x, half_size.z);
+    let bl = Vec2::new(-half_size.x, -half_size.z);
+    let br = Vec2::new(half_size.x, -half_size.z);
     [tr, tl, bl, br]
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -4,9 +4,11 @@ use bevy::math::{Vec3, Vec3Swizzles};
 use bevy::prelude::{Component, Deref, DerefMut, Entity, Transform};
 use dodgy_2d::{Agent, AvoidanceOptions};
 
+/// A QueryData used by the rvo_avoidance system to simplify queries.
+/// This version excludes LinearVelocity due to access restrictions
 #[derive(QueryData)]
 #[query_data(derive(Debug))]
-pub struct AgentData {
+pub struct AgentQueryData {
     pub entity: Entity,
     pub info: &'static AgentInfo,
     pub transform: &'static Transform,
@@ -14,9 +16,10 @@ pub struct AgentData {
     pub options: &'static AvoidanceOptionsComponent,
 }
 
+///
 #[derive(QueryData)]
 #[query_data(mutable, derive(Debug))]
-pub struct AgentDataMut {
+pub struct AgentQueryDataMut {
     pub entity: Entity,
     pub info: &'static AgentInfo,
     pub transform: &'static Transform,
@@ -47,8 +50,8 @@ pub struct AgentInfo {
 #[derive(Component, Clone, PartialEq, Debug, Deref, DerefMut)]
 pub struct AvoidanceOptionsComponent(pub AvoidanceOptions);
 
-impl From<&AgentDataMutReadOnlyItem<'_>> for Agent {
-    fn from(value: &AgentDataMutReadOnlyItem) -> Self {
+impl From<&AgentQueryDataMutReadOnlyItem<'_>> for Agent {
+    fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
         Self {
             position: value.transform.translation.xz(),
             velocity: value.linvel.xz(),

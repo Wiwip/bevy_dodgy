@@ -1,28 +1,41 @@
-
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 use avian3d::prelude::*;
-use crate::obstacles::TransformObstacle;
+use dodgy_2d::Obstacle;
+use crate::obstacles::{AsObstacle, TransformObstacle};
 
 pub struct DodgyDebugPlugin;
 
 impl Plugin for DodgyDebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.init_gizmo_group::<DodgyDebugGizmos>()
+            .add_systems(Startup, setup_debug_gizmos)
+            .add_systems(
             PostUpdate,
             (display_dodgy_obstacles, display_agent_velocity),
         );
     }
 }
 
-fn display_dodgy_obstacles(query: Query<(&Transform, &RigidBody, &Collider)>, mut gizmos: Gizmos) {
+#[derive(Default, Reflect, GizmoConfigGroup)]
+pub struct DodgyDebugGizmos {}
+
+fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>,){
+    let (config, _) = config_store.config_mut::<DodgyDebugGizmos>();
+    config.line_style = GizmoLineStyle::Dotted;
+}
+
+fn display_dodgy_obstacles(
+    query: Query<(&Transform, &RigidBody, &Collider)>,
+    mut gizmos: Gizmos<DodgyDebugGizmos>
+) {
     for (tf, body, collider) in query.iter() {
         if body.is_dynamic() || body.is_kinematic() {
             continue;
         }
 
-        /*if let Ok(mut obstacle) = Obstacle::try_from(collider) {
-            obstacle.transform(tf);
+        if let Some(mut obstacle) = collider.to_obstacle() {
+            obstacle.transform_points(tf);
 
             match obstacle {
                 Obstacle::Closed { vertices } => {
@@ -42,7 +55,7 @@ fn display_dodgy_obstacles(query: Query<(&Transform, &RigidBody, &Collider)>, mu
                     gizmos.linestrip(vertices_3d, Srgba::hex("#301934").unwrap());
                 }
             }
-        }*/
+        }
     }
 }
 

@@ -4,11 +4,11 @@ use bevy::prelude::*;
 use dodgy_2d::Obstacle;
 
 pub trait AsObstacle {
-    fn obstacle(&self) -> Option<Obstacle>;
+    fn to_obstacle(&self) -> Option<Obstacle>;
 }
 
 impl AsObstacle for Collider {
-    fn obstacle(&self) -> Option<Obstacle> {
+    fn to_obstacle(&self) -> Option<Obstacle> {
         let shape = self.shape_scaled().as_typed_shape();
         match shape {
             TypedShape::Cuboid(cuboid) => {
@@ -17,6 +17,13 @@ impl AsObstacle for Collider {
                 Some(Obstacle::Closed {
                     vertices: vec![tr, tl, bl, br],
                 })
+            }
+
+            TypedShape::Triangle(tri) => {
+                Some(Obstacle::Closed {
+                    vertices: vec![tri.a.xz().into(), tri.b.xz().into(), tri.c.xz().into()],
+                })
+
             }
 
             _ => {
@@ -28,20 +35,20 @@ impl AsObstacle for Collider {
 }
 
 pub trait TransformObstacle {
-    fn transform(&mut self, tf: &Transform);
+    fn transform_points(&mut self, tf: &Transform);
 }
 
 impl TransformObstacle for Obstacle {
-    fn transform(&mut self, tf: &Transform) {
+    fn transform_points(&mut self, tf: &Transform) {
         match self {
             Obstacle::Closed { vertices } => {
-                vertices.iter_mut().for_each(|mut vec2| {
+                vertices.iter_mut().for_each(|vec2| {
                     let pt = Vec3::new(vec2.x, 0., vec2.y);
                     let _ = tf.transform_point(pt).xz();
                 });
             }
             Obstacle::Open { vertices } => {
-                vertices.iter_mut().for_each(|mut vec2| {
+                vertices.iter_mut().for_each(|vec2| {
                     let pt = Vec3::new(vec2.x, 0., vec2.y);
                     let _ = tf.transform_point(pt).xz();
                 });

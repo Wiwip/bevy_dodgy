@@ -1,5 +1,5 @@
+use avian3d::math::Vector;
 use avian3d::prelude::*;
-use bevy::asset::AssetContainer;
 use bevy::prelude::*;
 use dodgy_2d::AvoidanceOptions;
 use rand::Rng;
@@ -62,6 +62,14 @@ fn setup(mut commands: Commands) {
         RigidBody::Static,
         TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
         Collider::cuboid(150.0, 1.0, 150.0),
+        CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
+        DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
+    ));
+
+    commands.spawn((
+        RigidBody::Static,
+        TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
+        Collider::triangle(Vector::new(300.0, 0.0, 400.0), Vector::new(200.0, 0.0, 300.0), Vector::new(400.0, 0.0, 300.0)),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
     ));

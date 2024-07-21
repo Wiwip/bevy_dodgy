@@ -1,4 +1,4 @@
-use crate::agents::{AgentData, AgentDataMut, AgentInfo};
+use crate::agents::{AgentQueryData, AgentQueryDataMut, AgentInfo};
 use crate::obstacles::{AsObstacle, TransformObstacle};
 use avian3d::prelude::*;
 use bevy::prelude::*;
@@ -6,8 +6,8 @@ use dodgy_2d::{Agent, Obstacle};
 use std::borrow::Cow;
 
 pub fn rvo_avoidance(
-    agents: Query<AgentData>,
-    mut query: Query<(AgentDataMut, &RigidBody)>,
+    agents: Query<AgentQueryData>,
+    mut query: Query<(AgentQueryDataMut, &RigidBody)>,
     q_obstacles: Query<(&Transform, &Collider, &RigidBody)>,
     spatial: SpatialQuery,
     time: Res<Time>,
@@ -16,17 +16,17 @@ pub fn rvo_avoidance(
         return;
     }
 
-    for agent in agents.iter() {
-        let (agent_data, _) = query.get(agent.entity).unwrap();
+    for agent_data in agents.iter() {
+        let (agent_data, _) = query.get(agent_data.entity).unwrap();
         let dodgy_agent = Agent::from(&agent_data);
 
         let intersections = spatial.shape_intersections(
             &Collider::sphere(
-                agent.info.radius + agent.options.time_horizon * agent.info.max_speed,
+                agent_data.info.radius + agent_data.options.time_horizon * agent_data.info.max_speed,
             ),
-            agent.transform.translation,
+            agent_data.transform.translation,
             Quat::IDENTITY,
-            SpatialQueryFilter::default().with_excluded_entities([agent.entity]), // Exclude self
+            SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
         );
 
         // Filter the intersected entities to return only dynamic agents
@@ -44,13 +44,13 @@ pub fn rvo_avoidance(
             .collect();
 
         // If the agent has no goal, ignore.
-        let Some(agent_goal) = agent.goal else {
+        let Some(agent_goal) = agent_data.goal else {
             continue;
         };
 
-        let preferred_velocity = (agent_goal.0.xz() - agent.transform.translation.xz())
+        let preferred_velocity = (agent_goal.0.xz() - agent_data.transform.translation.xz())
             .normalize_or_zero()
-            * agent.info.max_speed;
+            * agent_data.info.max_speed;
 
         // Compute the obstacles
         let mut obstacles: Vec<Cow<'static, Obstacle>> = vec![];
@@ -59,12 +59,12 @@ pub fn rvo_avoidance(
                 continue;
             };
 
-            // Only static bodies are considered for obstacles
+            // Only static bodies are considered for obstacles.
             match body {
                 RigidBody::Dynamic => { /* Ignore rigid bodies. */ }
                 RigidBody::Static => {
-                    if let Some(mut obstacle) = collider.obstacle() {
-                        obstacle.transform(obstacle_tf);
+                    if let Some(mut obstacle) = collider.to_obstacle() {
+                        obstacle.transform_points(obstacle_tf);
                         obstacles.push(Cow::Owned(obstacle));
                     }
                 }
@@ -76,13 +76,14 @@ pub fn rvo_avoidance(
             &neighbours,
             &obstacles,
             preferred_velocity,
-            agent.info.max_speed,
+            agent_data.info.max_speed,
             time.delta_seconds(),
-            agent.options,
+            agent_data.options,
         );
 
-        if let Ok((mut agent, _)) = query.get_mut(agent.entity) {
-            agent.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y)
+
+        if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+            agent_data_mut.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y)
         }
     }
 }

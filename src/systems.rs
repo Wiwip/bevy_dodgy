@@ -1,4 +1,4 @@
-use crate::agents::{AgentQueryData, AgentQueryDataMut, AgentInfo};
+use crate::agents::{AgentInfo, AgentQueryData, AgentQueryDataMut};
 use crate::obstacles::{AsObstacle, TransformObstacle};
 use avian3d::prelude::*;
 use bevy::prelude::*;
@@ -22,7 +22,8 @@ pub fn rvo_avoidance(
 
         let intersections = spatial.shape_intersections(
             &Collider::sphere(
-                agent_data.info.radius + agent_data.options.time_horizon * agent_data.info.max_speed,
+                agent_data.info.radius
+                    + agent_data.options.time_horizon * agent_data.info.max_speed,
             ),
             agent_data.transform.translation,
             Quat::IDENTITY,
@@ -80,7 +81,6 @@ pub fn rvo_avoidance(
             time.delta_seconds(),
             agent_data.options,
         );
-
 
         if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
             agent_data_mut.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y)

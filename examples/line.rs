@@ -1,10 +1,9 @@
 use avian3d::prelude::*;
-use bevy::asset::AssetContainer;
 use bevy::prelude::*;
-use dodgy_2d::AvoidanceOptions;
-use rand::Rng;
 use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy::DodgyPlugin;
+use dodgy_2d::AvoidanceOptions;
+use rand::Rng;
 
 fn main() {
     App::new()

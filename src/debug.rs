@@ -1,8 +1,8 @@
+use crate::obstacles::{AsObstacle, TransformObstacle};
+use avian3d::prelude::*;
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
-use avian3d::prelude::*;
 use dodgy_2d::Obstacle;
-use crate::obstacles::{AsObstacle, TransformObstacle};
 
 pub struct DodgyDebugPlugin;
 
@@ -11,23 +11,23 @@ impl Plugin for DodgyDebugPlugin {
         app.init_gizmo_group::<DodgyDebugGizmos>()
             .add_systems(Startup, setup_debug_gizmos)
             .add_systems(
-            PostUpdate,
-            (display_dodgy_obstacles, display_agent_velocity),
-        );
+                PostUpdate,
+                (display_dodgy_obstacles, display_agent_velocity),
+            );
     }
 }
 
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct DodgyDebugGizmos {}
 
-fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>,){
+fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>) {
     let (config, _) = config_store.config_mut::<DodgyDebugGizmos>();
     config.line_style = GizmoLineStyle::Dotted;
 }
 
 fn display_dodgy_obstacles(
     query: Query<(&Transform, &RigidBody, &Collider)>,
-    mut gizmos: Gizmos<DodgyDebugGizmos>
+    mut gizmos: Gizmos<DodgyDebugGizmos>,
 ) {
     for (tf, body, collider) in query.iter() {
         if body.is_dynamic() || body.is_kinematic() {
@@ -61,6 +61,10 @@ fn display_dodgy_obstacles(
 
 fn display_agent_velocity(query: Query<(&Transform, &LinearVelocity)>, mut gizmos: Gizmos) {
     for (tf, linvel) in query.iter() {
-        gizmos.line(tf.translation, tf.translation + linvel.0, Srgba::hex("#6b8e2c").unwrap())
+        gizmos.line(
+            tf.translation,
+            tf.translation + linvel.0,
+            Srgba::hex("#6b8e2c").unwrap(),
+        )
     }
 }

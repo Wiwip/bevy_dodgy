@@ -1,13 +1,14 @@
 use avian3d::prelude::*;
 use bevy::app::{App, Startup};
-use bevy::DefaultPlugins;
 use bevy::math::Vec3;
 use bevy::prelude::*;
-use dodgy_2d::AvoidanceOptions;
-use rand::Rng;
+use bevy::DefaultPlugins;
 use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy::debug::DodgyDebugPlugin;
+use bevy_dodgy::geometry::point_on_circle;
 use bevy_dodgy::DodgyPlugin;
+use dodgy_2d::AvoidanceOptions;
+use rand::Rng;
 
 fn main() {
     App::new()
@@ -42,9 +43,9 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(-point.1, 0.0, -500.0 + -point.0)))
+            .insert(AgentGoal(Vec3::new(-point.y, 0.0, -500.0 + -point.x)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(point.1, 0.0, -500.0 + point.0),
+                Vec3::new(point.y, 0.0, -500.0 + point.x),
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,
@@ -65,9 +66,9 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(-point.1, 0.0, 500.0 + -point.0)))
+            .insert(AgentGoal(Vec3::new(-point.y, 0.0, 500.0 + -point.x)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(point.1, 0.0, 500.0 + point.0),
+                Vec3::new(point.y, 0.0, 500.0 + point.x),
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,
@@ -79,10 +80,4 @@ fn setup(mut commands: Commands) {
                 DebugRender::default().with_collider_color(Srgba::hex("#a52c4c").unwrap().into()),
             );
     }
-}
-
-fn point_on_circle(center: (f32, f32), radius: f32, theta: f32) -> (f32, f32) {
-    let x = center.0 + radius * theta.cos();
-    let y = center.1 + radius * theta.sin();
-    (x, y)
 }

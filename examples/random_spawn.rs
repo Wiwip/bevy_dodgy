@@ -1,11 +1,11 @@
 use avian3d::math::Vector;
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use dodgy_2d::AvoidanceOptions;
-use rand::Rng;
 use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy::debug::DodgyDebugPlugin;
 use bevy_dodgy::DodgyPlugin;
+use dodgy_2d::AvoidanceOptions;
+use rand::Rng;
 
 fn main() {
     App::new()
@@ -69,7 +69,11 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         RigidBody::Static,
         TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
-        Collider::triangle(Vector::new(300.0, 0.0, 400.0), Vector::new(200.0, 0.0, 300.0), Vector::new(400.0, 0.0, 300.0)),
+        Collider::triangle(
+            Vector::new(300.0, 0.0, 400.0),
+            Vector::new(200.0, 0.0, 300.0),
+            Vector::new(400.0, 0.0, 300.0),
+        ),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
     ));

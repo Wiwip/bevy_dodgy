@@ -1,3 +1,4 @@
+use crate::geometry::{point_on_circle, rect_inner};
 use avian3d::parry::shape::TypedShape;
 use avian3d::prelude::*;
 use bevy::prelude::*;
@@ -19,11 +20,60 @@ impl AsObstacle for Collider {
                 })
             }
 
-            TypedShape::Triangle(tri) => {
-                Some(Obstacle::Closed {
-                    vertices: vec![tri.a.xz().into(), tri.b.xz().into(), tri.c.xz().into()],
-                })
+            TypedShape::Triangle(tri) => Some(Obstacle::Closed {
+                vertices: vec![tri.a.xz().into(), tri.b.xz().into(), tri.c.xz().into()],
+            }),
 
+            TypedShape::Cylinder(cylinder) => {
+                let num_agents = 12; // TODO configuration resource
+                Some(Obstacle::Closed {
+                    vertices: (0..num_agents)
+                        .map(|i| {
+                            let theta =
+                                2.0 * std::f32::consts::PI * (i as f32) / (num_agents as f32);
+                            point_on_circle((0., 0.), cylinder.radius, theta)
+                        })
+                        .collect(),
+                })
+            }
+
+            TypedShape::Capsule(capsule) => {
+                let num_agents = 12; // TODO configuration resource
+                Some(Obstacle::Closed {
+                    vertices: (0..num_agents)
+                        .map(|i| {
+                            let theta =
+                                2.0 * std::f32::consts::PI * (i as f32) / (num_agents as f32);
+                            point_on_circle((0., 0.), capsule.radius, theta)
+                        })
+                        .collect(),
+                })
+            }
+
+            TypedShape::Ball(ball) => {
+                let num_agents = 12; // TODO configuration resource
+                Some(Obstacle::Closed {
+                    vertices: (0..num_agents)
+                        .map(|i| {
+                            let theta =
+                                2.0 * std::f32::consts::PI * (i as f32) / (num_agents as f32);
+                            point_on_circle((0., 0.), ball.radius, theta)
+                        })
+                        .collect(),
+                })
+            }
+
+            TypedShape::Cone(cone) => {
+                let num_agents = 12; // TODO configuration resource
+                Some(Obstacle::Closed {
+                    vertices: (0..num_agents)
+                        .map(|i| {
+                            let theta =
+                                2.0 * std::f32::consts::PI * (i as f32) / (num_agents as f32);
+                            point_on_circle((0., 0.), cone.radius, theta)
+                        })
+                        .collect(),
+                })
             }
 
             _ => {
@@ -55,13 +105,4 @@ impl TransformObstacle for Obstacle {
             }
         }
     }
-}
-
-fn rect_inner(size: Vec3) -> [Vec2; 4] {
-    let half_size = size / 2.;
-    let tl = Vec2::new(-half_size.x, half_size.z);
-    let tr = Vec2::new(half_size.x, half_size.z);
-    let bl = Vec2::new(-half_size.x, -half_size.z);
-    let br = Vec2::new(half_size.x, -half_size.z);
-    [tr, tl, bl, br]
 }

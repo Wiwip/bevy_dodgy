@@ -26,7 +26,7 @@ fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>) {
 }
 
 fn display_dodgy_obstacles(
-    query: Query<(&Transform, &RigidBody, &Collider)>,
+    query: Query<(&GlobalTransform, &RigidBody, &Collider)>,
     mut gizmos: Gizmos<DodgyDebugGizmos>,
 ) {
     for (tf, body, collider) in query.iter() {
@@ -46,6 +46,7 @@ fn display_dodgy_obstacles(
                         vertices_3d.push(vertices_3d[0]); // Adds a line to close the shape
                     }
 
+                    info!("{:?}", vertices_3d);
                     gizmos.linestrip(vertices_3d, Srgba::hex("#9F2B68").unwrap());
                 }
                 Obstacle::Open { vertices } => {

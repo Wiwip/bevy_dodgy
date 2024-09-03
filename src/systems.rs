@@ -8,7 +8,7 @@ use std::borrow::Cow;
 pub fn rvo_avoidance(
     agents: Query<AgentQueryData>,
     mut query: Query<(AgentQueryDataMut, &RigidBody)>,
-    q_obstacles: Query<(&Transform, &Collider, &RigidBody)>,
+    q_obstacles: Query<(&GlobalTransform, &Collider, &RigidBody)>,
     spatial: SpatialQuery,
     time: Res<Time>,
 ) {
@@ -62,14 +62,20 @@ pub fn rvo_avoidance(
 
             // Only static bodies are considered for obstacles.
             match body {
-                RigidBody::Dynamic => { /* Ignore rigid bodies. */ }
+                RigidBody::Dynamic => {
+                    /* Ignore rigid bodies. */
+                    warn_once!("Dynamic bodies obstacles are not supported.");
+                }
                 RigidBody::Static => {
                     if let Some(mut obstacle) = collider.to_obstacle() {
                         obstacle.transform_points(obstacle_tf);
                         obstacles.push(Cow::Owned(obstacle));
                     }
                 }
-                RigidBody::Kinematic => { /* Ignore kinematic bodies. */ }
+                RigidBody::Kinematic => {
+                    /* Ignore kinematic bodies. */
+                    warn_once!("Kinematic bodies obstacles are not supported.");
+                }
             }
         }
 

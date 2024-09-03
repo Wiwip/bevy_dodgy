@@ -26,7 +26,7 @@ fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>) {
 }
 
 fn display_dodgy_obstacles(
-    query: Query<(&Transform, &RigidBody, &Collider)>,
+    query: Query<(&GlobalTransform, &RigidBody, &Collider)>,
     mut gizmos: Gizmos<DodgyDebugGizmos>,
 ) {
     for (tf, body, collider) in query.iter() {

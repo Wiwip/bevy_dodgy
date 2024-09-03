@@ -60,7 +60,7 @@ fn setup(mut commands: Commands) {
 
     commands.spawn((
         RigidBody::Static,
-        TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
+        TransformBundle::from(Transform::from_translation(Vec3::new(250.0, 0.0, 50.0))),
         Collider::cuboid(150.0, 1.0, 150.0),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
@@ -68,11 +68,11 @@ fn setup(mut commands: Commands) {
 
     commands.spawn((
         RigidBody::Static,
-        TransformBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
+        TransformBundle::from(Transform::from_translation(Vec3::new(-300.0, 0.0, 600.0))),
         Collider::triangle(
-            Vector::new(300.0, 0.0, 400.0),
-            Vector::new(200.0, 0.0, 300.0),
-            Vector::new(400.0, 0.0, 300.0),
+            Vector::new(0.0, 0.0, 0.0),
+            Vector::new(100.0, 0.0, 200.0),
+            Vector::new(200.0, 0.0, 0.0),
         ),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),

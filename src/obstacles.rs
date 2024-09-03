@@ -85,22 +85,22 @@ impl AsObstacle for Collider {
 }
 
 pub trait TransformObstacle {
-    fn transform_points(&mut self, tf: &GlobalTransform);
+    fn transform_points(&mut self, tf: &Transform);
 }
 
 impl TransformObstacle for Obstacle {
-    fn transform_points(&mut self, tf: &GlobalTransform) {
+    fn transform_points(&mut self, tf: &Transform) {
         match self {
             Obstacle::Closed { vertices } => {
                 vertices.iter_mut().for_each(|vec2| {
                     let pt = Vec3::new(vec2.x, 0., vec2.y);
-                    let _ = tf.transform_point(pt).xz();
+                    *vec2 = tf.transform_point(pt).xz();
                 });
             }
             Obstacle::Open { vertices } => {
                 vertices.iter_mut().for_each(|vec2| {
                     let pt = Vec3::new(vec2.x, 0., vec2.y);
-                    let _ = tf.transform_point(pt).xz();
+                    *vec2 = tf.transform_point(pt).xz();
                 });
             }
         }

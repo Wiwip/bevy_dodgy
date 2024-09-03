@@ -8,7 +8,7 @@ use std::borrow::Cow;
 pub fn rvo_avoidance(
     agents: Query<AgentQueryData>,
     mut query: Query<(AgentQueryDataMut, &RigidBody)>,
-    q_obstacles: Query<(&GlobalTransform, &Collider, &RigidBody)>,
+    q_obstacles: Query<(&Transform, &Collider, &RigidBody)>,
     spatial: SpatialQuery,
     time: Res<Time>,
 ) {

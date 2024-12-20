@@ -8,11 +8,11 @@ use std::borrow::Cow;
 pub fn rvo_avoidance(
     agents: Query<AgentQueryData>,
     mut query: Query<(AgentQueryDataMut, &RigidBody)>,
-    q_obstacles: Query<(&Transform, &Collider, &RigidBody)>,
+    q_obstacles: Query<(&Transform, &Collider, &RigidBody), Without<AgentInfo>>,
     spatial: SpatialQuery,
     time: Res<Time>,
 ) {
-    if !(time.delta_seconds() > 0.0) {
+    if !(time.delta_secs() > 0.0) {
         return;
     }
 
@@ -27,7 +27,7 @@ pub fn rvo_avoidance(
             ),
             agent_data.transform.translation,
             Quat::IDENTITY,
-            SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
+            &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
         );
 
         // Filter the intersected entities to return only dynamic agents
@@ -84,7 +84,7 @@ pub fn rvo_avoidance(
             &obstacles,
             preferred_velocity,
             agent_data.info.max_speed,
-            time.delta_seconds(),
+            time.delta_secs(),
             agent_data.options,
         );
 

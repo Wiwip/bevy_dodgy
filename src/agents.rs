@@ -50,6 +50,20 @@ pub struct AgentInfo {
 #[derive(Component, Clone, PartialEq, Debug, Deref, DerefMut)]
 pub struct AvoidanceOptionsComponent(pub AvoidanceOptions);
 
+impl AvoidanceOptionsComponent {
+    pub fn new(
+        obstacle_margin: f32,
+        time_horizon: f32,
+        obstacle_time_horizon: f32,
+    ) -> AvoidanceOptionsComponent {
+        AvoidanceOptionsComponent(AvoidanceOptions {
+            obstacle_margin,
+            time_horizon,
+            obstacle_time_horizon,
+        })
+    }
+}
+
 impl From<&AgentQueryDataMutReadOnlyItem<'_>> for Agent {
     fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
         Self {

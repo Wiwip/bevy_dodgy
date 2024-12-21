@@ -41,15 +41,15 @@ fn setup(mut commands: Commands) {
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
             .insert(AgentGoal(Vec3::new(
-                rng.gen_range(-2000.0..2000.0),
+                rng.random_range(-2000.0..2000.0),
                 0.0,
-                rng.gen_range(-2000.0..2000.0),
+                rng.random_range(-2000.0..2000.0),
             )))
             .insert(TransformBundle::from(Transform::from_translation(
                 Vec3::new(
-                    rng.gen_range(-2000.0..2000.0),
+                    rng.random_range(-2000.0..2000.0),
                     0.0,
-                    rng.gen_range(-2000.0..2000.0),
+                    rng.random_range(-2000.0..2000.0),
                 ),
             )))
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))

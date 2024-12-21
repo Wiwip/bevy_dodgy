@@ -11,7 +11,7 @@ keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 [dependencies]
 avian3d = { git = "https://github.com/Jondolf/avian.git" }
 dodgy_2d = { git = "https://github.com/Wiwip/dodgy.git" }
-rand = "0.9.0-alpha.2"
+rand = "0.9.0-beta.1"
 
 [dependencies.bevy]
 version = "0.15.0"

@@ -29,7 +29,10 @@ pub struct AgentQueryDataMut {
 }
 
 #[derive(Component, Debug)]
-pub struct AgentGoal(pub Vec2);
+pub struct AgentGoal{
+    pub dest: Vec2,
+    pub tolerance: f32,
+}
 
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]

@@ -49,7 +49,13 @@ pub fn rvo_avoidance(
             continue;
         };
 
-        let preferred_velocity = (agent_goal.0 - agent_data.transform.translation.xy())
+        // Check whether the agent is within the goal tolerance
+        let distance = (agent_goal.dest - agent_data.transform.translation.xy()).length();
+        if distance <= agent_goal.tolerance {
+            continue;
+        }
+
+        let preferred_velocity = (agent_goal.dest - agent_data.transform.translation.xy())
             .normalize_or_zero()
             * agent_data.info.max_speed;
 

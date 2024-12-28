@@ -1,3 +1,4 @@
+use crate::agents::AgentGoal;
 use crate::obstacles::{AsObstacle, TransformObstacle};
 use avian2d::prelude::*;
 use bevy::app::{App, Plugin};
@@ -5,7 +6,6 @@ use bevy::color::palettes::basic::BLUE;
 use bevy::color::palettes::css::PURPLE;
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
-use crate::agents::AgentGoal;
 
 pub struct DodgyDebugPlugin;
 
@@ -62,18 +62,13 @@ fn display_dodgy_obstacles(
     }
 }
 
-fn display_agent_velocity(query: Query<(&Transform, &LinearVelocity, &AgentGoal)>, mut gizmos: Gizmos) {
+fn display_agent_velocity(
+    query: Query<(&Transform, &LinearVelocity, &AgentGoal)>,
+    mut gizmos: Gizmos,
+) {
     for (tf, linvel, goal) in query.iter() {
-        gizmos.line_2d(
-            tf.translation.xy(),
-            tf.translation.xy() + linvel.0,
-            BLUE,
-        );
+        gizmos.line_2d(tf.translation.xy(), tf.translation.xy() + linvel.0, BLUE);
 
-        gizmos.line_2d(
-          tf.translation.xy(),
-          goal.dest,
-          PURPLE,
-        );
+        gizmos.line_2d(tf.translation.xy(), goal.dest, PURPLE);
     }
 }

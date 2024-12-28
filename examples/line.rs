@@ -1,4 +1,4 @@
-use avian3d::prelude::*;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy::DodgyPlugin;
@@ -12,15 +12,12 @@ fn main() {
         .add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(DodgyPlugin)
         .add_systems(Startup, setup)
-        .insert_resource(Gravity(Vec3::ZERO))
+        .insert_resource(Gravity(Vec2::ZERO))
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 1200.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    commands.spawn(Camera2d);
 
     let mut rng = rand::thread_rng();
 
@@ -33,10 +30,10 @@ fn setup(mut commands: Commands) {
                 max_speed: 30.0,
             })
             .insert(RigidBody::Dynamic)
-            .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(0.0, 0.0, right_x + 200.0)))
+            //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
+            .insert(AgentGoal(Vec2::new(right_x + 200.0, 0.0)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20. * i as f32, 0.0, right_x + -100.0),
+                Vec3::new(right_x + -100.0, -250.0 + 20. * i as f32, 0.0),
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,
@@ -55,10 +52,10 @@ fn setup(mut commands: Commands) {
                 max_speed: 30.0,
             })
             .insert(RigidBody::Dynamic)
-            .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(0.0, 0.0, right_x + -200.0)))
+            //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
+            .insert(AgentGoal(Vec2::new(right_x + -200.0, 0.0)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20. * i as f32, 0.0, right_x + 100.0),
+                Vec3::new(right_x + 100.0, -250.0 + 20. * i as f32, 0.0),
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,
@@ -86,10 +83,10 @@ fn setup(mut commands: Commands) {
                 obstacle_time_horizon: 1.0,
             }))
             .insert(RigidBody::Dynamic)
-            .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(0.0, 0.0, left_x + 200.0)))
+            //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
+            .insert(AgentGoal(Vec2::new(0.0, left_x + 200.0)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20.0 * i as f32, 0.0, left_x + -100.0),
+                Vec3::new(-250.0 + 20.0 * i as f32, left_x + -100.0, 0.0),
             )))
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))
             .insert(
@@ -103,10 +100,10 @@ fn setup(mut commands: Commands) {
                 max_speed: 30.0,
             })
             .insert(RigidBody::Dynamic)
-            .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(0.0, 0.0, left_x + -200.0)))
+            //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
+            .insert(AgentGoal(Vec2::new(0.0, left_x + -200.0)))
             .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20.0 * i as f32, 0.0, left_x + 100.0),
+                Vec3::new(-250.0 + 20.0 * i as f32, left_x + 100.0, 0.0),
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,

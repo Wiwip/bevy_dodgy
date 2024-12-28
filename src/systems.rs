@@ -1,6 +1,6 @@
 use crate::agents::{AgentInfo, AgentQueryData, AgentQueryDataMut};
 use crate::obstacles::{AsObstacle, TransformObstacle};
-use avian3d::prelude::*;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use dodgy_2d::{Agent, Obstacle};
 use std::borrow::Cow;
@@ -21,12 +21,12 @@ pub fn rvo_avoidance(
         let dodgy_agent = Agent::from(&agent_data);
 
         let intersections = spatial.shape_intersections(
-            &Collider::sphere(
+            &Collider::circle(
                 agent_data.info.radius
                     + agent_data.options.time_horizon * agent_data.info.max_speed,
             ),
-            agent_data.transform.translation,
-            Quat::IDENTITY,
+            agent_data.transform.translation.xy(),
+            0.0,
             &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
         );
 
@@ -49,7 +49,7 @@ pub fn rvo_avoidance(
             continue;
         };
 
-        let preferred_velocity = (agent_goal.0.xz() - agent_data.transform.translation.xz())
+        let preferred_velocity = (agent_goal.0 - agent_data.transform.translation.xy())
             .normalize_or_zero()
             * agent_data.info.max_speed;
 
@@ -89,7 +89,7 @@ pub fn rvo_avoidance(
         );
 
         if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-            agent_data_mut.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y)
+            agent_data_mut.linvel.0 = avoidance_velocity;
         }
     }
 }
@@ -102,7 +102,7 @@ pub(crate) fn on_add_create_collider(
         if option_collider.is_none() {
             commands
                 .entity(e)
-                .insert(Collider::capsule(agent.radius, 18.0));
+                .insert(Collider::circle(agent.radius));
         }
     }
 }

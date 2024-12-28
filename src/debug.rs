@@ -1,5 +1,5 @@
 use crate::obstacles::{AsObstacle, TransformObstacle};
-use avian3d::prelude::*;
+use avian2d::prelude::*;
 use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
@@ -63,7 +63,7 @@ fn display_agent_velocity(query: Query<(&Transform, &LinearVelocity)>, mut gizmo
     for (tf, linvel) in query.iter() {
         gizmos.line(
             tf.translation,
-            tf.translation + linvel.0,
+            tf.translation + linvel.0.extend(0.0),
             Srgba::hex("#6b8e2c").unwrap(),
         )
     }

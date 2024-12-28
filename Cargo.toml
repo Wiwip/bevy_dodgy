@@ -9,7 +9,7 @@ categories = ["game-development"]
 keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 
 [dependencies]
-avian3d = "0.2.0"
+avian2d = "0.2.0"
 dodgy_2d = { git = "https://github.com/Wiwip/dodgy.git" }
 rand = "0.9.0-beta.1"
 

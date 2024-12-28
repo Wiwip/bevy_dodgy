@@ -1,7 +1,7 @@
-use avian3d::prelude::LinearVelocity;
+use avian2d::prelude::LinearVelocity;
 use bevy::ecs::query::QueryData;
-use bevy::math::{Vec3, Vec3Swizzles};
-use bevy::prelude::{Component, Deref, DerefMut, Entity, Transform};
+use bevy::math::Vec3Swizzles;
+use bevy::prelude::{Component, Deref, DerefMut, Entity, Transform, Vec2};
 use dodgy_2d::{Agent, AvoidanceOptions};
 
 /// A QueryData used by the rvo_avoidance system to simplify queries.
@@ -29,7 +29,7 @@ pub struct AgentQueryDataMut {
 }
 
 #[derive(Component, Debug)]
-pub struct AgentGoal(pub Vec3);
+pub struct AgentGoal(pub Vec2);
 
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
@@ -67,8 +67,8 @@ impl AvoidanceOptionsComponent {
 impl From<&AgentQueryDataMutReadOnlyItem<'_>> for Agent {
     fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
         Self {
-            position: value.transform.translation.xz(),
-            velocity: value.linvel.xz(),
+            position: value.transform.translation.xy(),
+            velocity: value.linvel.0,
             radius: value.info.radius,
             avoidance_responsibility: value.info.avoidance_responsibility,
         }

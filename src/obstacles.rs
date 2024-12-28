@@ -1,6 +1,6 @@
 use crate::geometry::{point_on_circle, rect_inner};
-use avian3d::parry::shape::TypedShape;
-use avian3d::prelude::*;
+use avian2d::parry::shape::TypedShape;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
 
@@ -12,7 +12,7 @@ impl AsObstacle for Collider {
     fn to_obstacle(&self) -> Option<Obstacle> {
         let shape = self.shape_scaled().as_typed_shape();
         match shape {
-            TypedShape::Cuboid(cuboid) => {
+            /*TypedShape::Cuboid(cuboid) => {
                 let [tr, tl, bl, br] = rect_inner(Vec3::from(cuboid.half_extents * 2.0));
 
                 Some(Obstacle::Closed {
@@ -74,7 +74,7 @@ impl AsObstacle for Collider {
                         })
                         .collect(),
                 })
-            }
+            }*/
 
             _ => {
                 warn_once!("The shape isn't supported.");

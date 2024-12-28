@@ -1,5 +1,5 @@
-use avian3d::math::Vector;
-use avian3d::prelude::*;
+use avian2d::math::Vector;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy::debug::DodgyDebugPlugin;

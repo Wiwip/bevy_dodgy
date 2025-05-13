@@ -35,8 +35,10 @@ fn setup(mut commands: Commands) {
                 dest: Vec2::new(right_x + 200.0, 0.0),
                 tolerance: 4.0,
             })
-            .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(right_x + -100.0, -250.0 + 20. * i as f32, 0.0),
+            .insert(Transform::from_translation(Vec3::new(
+                right_x + -100.0,
+                -250.0 + 20. * i as f32,
+                0.0,
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 2.1,
@@ -60,8 +62,10 @@ fn setup(mut commands: Commands) {
                 dest: Vec2::new(right_x + -200.0, 0.0),
                 tolerance: 4.0,
             })
-            .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(right_x + 100.0, -250.0 + 20. * i as f32, 0.0),
+            .insert(Transform::from_translation(Vec3::new(
+                right_x + 100.0,
+                -250.0 + 20. * i as f32,
+                0.0,
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 2.1,
@@ -75,7 +79,7 @@ fn setup(mut commands: Commands) {
     }
 
     // Makes agents that have no prediction at all
-    /*let left_x = -400.0;
+    let left_x = -400.0;
     for i in 0..20 {
         commands
             .spawn(AgentInfo {
@@ -90,9 +94,14 @@ fn setup(mut commands: Commands) {
             }))
             .insert(RigidBody::Dynamic)
             //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec2::new(0.0, left_x + 200.0)))
-            .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20.0 * i as f32, left_x + -100.0, 0.0),
+            .insert(AgentGoal {
+                dest: Vec2::new(0.0, left_x + 200.0),
+                tolerance: 4.0,
+            })
+            .insert(Transform::from_translation(Vec3::new(
+                -250.0 + 20.0 * i as f32,
+                left_x + -100.0,
+                0.0,
             )))
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))
             .insert(
@@ -107,9 +116,14 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec2::new(0.0, left_x + -200.0)))
-            .insert(TransformBundle::from(Transform::from_translation(
-                Vec3::new(-250.0 + 20.0 * i as f32, left_x + 100.0, 0.0),
+            .insert(AgentGoal {
+                dest: Vec2::new(0.0, left_x + -200.0),
+                tolerance: 4.0,
+            })
+            .insert(Transform::from_translation(Vec3::new(
+                -250.0 + 20.0 * i as f32,
+                left_x + 100.0,
+                0.0,
             )))
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 0.1,
@@ -120,7 +134,5 @@ fn setup(mut commands: Commands) {
             .insert(
                 DebugRender::default().with_collider_color(Srgba::hex("#2e41a1").unwrap().into()),
             );
-
-     */
+    }
 }
-

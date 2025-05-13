@@ -12,26 +12,25 @@ impl AsObstacle for Collider {
     fn to_obstacle(&self) -> Option<Obstacle> {
         let shape = self.shape_scaled().as_typed_shape();
         match shape {
-            /*TypedShape::Cuboid(cuboid) => {
-                let [tr, tl, bl, br] = rect_inner(Vec3::from(cuboid.half_extents * 2.0));
+            TypedShape::Cuboid(cuboid) => {
+                let [tr, tl, bl, br] = rect_inner(Vec2::from(cuboid.half_extents * 2.0));
 
                 Some(Obstacle::Closed {
                     vertices: vec![tr, tl, bl, br],
                 })
             }
 
-            TypedShape::Triangle(tri) => Some(Obstacle::Closed {
+            /*TypedShape::Triangle(tri) => Some(Obstacle::Closed {
                 vertices: vec![tri.a.xz().into(), tri.b.xz().into(), tri.c.xz().into()],
-            }),
-
-            TypedShape::Cylinder(cylinder) => {
-                let num_agents = 12; // TODO configuration resource
+            }),*/
+            TypedShape::Ball(ball) => {
+                let num_vertices = 12; // TODO configuration resource
                 Some(Obstacle::Closed {
-                    vertices: (0..num_agents)
+                    vertices: (0..num_vertices)
                         .map(|i| {
                             let theta =
-                                2.0 * std::f32::consts::PI * (i as f32) / (num_agents as f32);
-                            point_on_circle((0., 0.), cylinder.radius, theta)
+                                2.0 * std::f32::consts::PI * (i as f32) / (num_vertices as f32);
+                            point_on_circle((0., 0.), ball.radius, theta)
                         })
                         .collect(),
                 })
@@ -63,7 +62,7 @@ impl AsObstacle for Collider {
                 })
             }
 
-            TypedShape::Cone(cone) => {
+            /*TypedShape::Cone(cone) => {
                 let num_agents = 12; // TODO configuration resource
                 Some(Obstacle::Closed {
                     vertices: (0..num_agents)
@@ -75,7 +74,6 @@ impl AsObstacle for Collider {
                         .collect(),
                 })
             }*/
-
             _ => {
                 warn_once!("The shape isn't supported.");
                 None
@@ -93,14 +91,14 @@ impl TransformObstacle for Obstacle {
         match self {
             Obstacle::Closed { vertices } => {
                 vertices.iter_mut().for_each(|vec2| {
-                    let pt = Vec3::new(vec2.x, 0., vec2.y);
-                    *vec2 = tf.transform_point(pt).xz();
+                    let pt = Vec3::new(vec2.x, vec2.y, 0.0);
+                    *vec2 = tf.transform_point(pt).xy();
                 });
             }
             Obstacle::Open { vertices } => {
                 vertices.iter_mut().for_each(|vec2| {
-                    let pt = Vec3::new(vec2.x, 0., vec2.y);
-                    *vec2 = tf.transform_point(pt).xz();
+                    let pt = Vec3::new(vec2.x, vec2.y, 0.0);
+                    *vec2 = tf.transform_point(pt).xy();
                 });
             }
         }

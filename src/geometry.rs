@@ -1,11 +1,11 @@
 use bevy::math::{Vec2, Vec3};
 
-pub fn rect_inner(size: Vec3) -> [Vec2; 4] {
+pub fn rect_inner(size: Vec2) -> [Vec2; 4] {
     let half_size = size / 2.;
-    let tl = Vec2::new(-half_size.x, half_size.z);
-    let tr = Vec2::new(half_size.x, half_size.z);
-    let bl = Vec2::new(-half_size.x, -half_size.z);
-    let br = Vec2::new(half_size.x, -half_size.z);
+    let tl = Vec2::new(-half_size.x, half_size.y);
+    let tr = Vec2::new(half_size.x, half_size.y);
+    let bl = Vec2::new(-half_size.x, -half_size.y);
+    let br = Vec2::new(half_size.x, -half_size.y);
     [tr, tl, bl, br]
 }
 

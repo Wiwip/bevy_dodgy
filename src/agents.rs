@@ -29,7 +29,7 @@ pub struct AgentQueryDataMut {
 }
 
 #[derive(Component, Debug)]
-pub struct AgentGoal{
+pub struct AgentGoal {
     pub dest: Vec2,
     pub tolerance: f32,
 }

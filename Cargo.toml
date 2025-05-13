@@ -9,13 +9,17 @@ categories = ["game-development"]
 keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 
 [dependencies]
-avian2d = "0.2.0"
-dodgy_2d = { git = "https://github.com/Wiwip/dodgy.git" }
-rand = "0.9.0-beta.1"
+avian2d = { git = "https://github.com/Jondolf/avian.git", features = ["2d"] }
+dodgy_2d = "0.5.5"
+rand = "0.9"
 
 [dependencies.bevy]
-version = "0.15.0"
-features = ["dynamic_linking"]
+version = "0.16.0"
+default-features = false
+
+[dev-dependencies.bevy]
+version = "0.16.0"
+default-features = true
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

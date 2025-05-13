@@ -11,19 +11,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(PhysicsPlugins::default())
-        .add_plugins(PhysicsDebugPlugin::default())
+        //.add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(DodgyPlugin)
         .add_plugins(DodgyDebugPlugin)
         .add_systems(Startup, setup)
-        .insert_resource(Gravity(Vec3::ZERO))
+        .insert_resource(Gravity(Vec2::ZERO))
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 1200.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    commands.spawn(Camera2d);
 
     let mut rng = rand::thread_rng();
     for _ in 0..2000 {
@@ -39,8 +36,8 @@ fn setup(mut commands: Commands) {
                 obstacle_time_horizon: 3.0,
             }))
             .insert(RigidBody::Dynamic)
-            .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal(Vec3::new(
+            //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
+            /*.insert(AgentGoal(Vec3::new(
                 rng.random_range(-2000.0..2000.0),
                 0.0,
                 rng.random_range(-2000.0..2000.0),
@@ -51,7 +48,7 @@ fn setup(mut commands: Commands) {
                     0.0,
                     rng.random_range(-2000.0..2000.0),
                 ),
-            )))
+            )))*/
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))
             .insert(
                 DebugRender::default().with_collider_color(Srgba::hex("#a52c4c").unwrap().into()),
@@ -60,20 +57,20 @@ fn setup(mut commands: Commands) {
 
     commands.spawn((
         RigidBody::Static,
-        TransformBundle::from(Transform::from_translation(Vec3::new(250.0, 0.0, 50.0))),
-        Collider::cuboid(150.0, 1.0, 150.0),
+        Transform::from_translation(Vec3::new(250.0, 0.0, 50.0)),
+        Collider::rectangle(150.0, 150.0),
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
     ));
 
     commands.spawn((
         RigidBody::Static,
-        TransformBundle::from(Transform::from_translation(Vec3::new(-300.0, 0.0, 600.0))),
-        Collider::triangle(
+        Transform::from_translation(Vec3::new(-300.0, 0.0, 600.0)),
+        /*Collider::triangle(
             Vector::new(0.0, 0.0, 0.0),
             Vector::new(100.0, 0.0, 200.0),
             Vector::new(200.0, 0.0, 0.0),
-        ),
+        ),*/
         CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
         DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
     ));

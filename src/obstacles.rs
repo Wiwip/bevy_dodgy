@@ -1,6 +1,6 @@
 use crate::geometry::{point_on_circle, rect_inner};
-use avian2d::parry::shape::TypedShape;
-use avian2d::prelude::*;
+use avian3d::parry::shape::TypedShape;
+use avian3d::prelude::*;
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
 
@@ -13,7 +13,7 @@ impl AsObstacle for Collider {
         let shape = self.shape_scaled().as_typed_shape();
         match shape {
             TypedShape::Cuboid(cuboid) => {
-                let [tr, tl, bl, br] = rect_inner(Vec2::from(cuboid.half_extents * 2.0));
+                let [tr, tl, bl, br] = rect_inner(Vec3::from(cuboid.half_extents * 2.0).xz());
 
                 Some(Obstacle::Closed {
                     vertices: vec![tr, tl, bl, br],
@@ -82,12 +82,13 @@ impl AsObstacle for Collider {
     }
 }
 
+
 pub trait TransformObstacle {
-    fn transform_points(&mut self, tf: &Transform);
+    fn transform_points(&mut self, tf: &GlobalTransform);
 }
 
 impl TransformObstacle for Obstacle {
-    fn transform_points(&mut self, tf: &Transform) {
+    fn transform_points(&mut self, tf: &GlobalTransform) {
         match self {
             Obstacle::Closed { vertices } => {
                 vertices.iter_mut().for_each(|vec2| {

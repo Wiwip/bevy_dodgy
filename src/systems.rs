@@ -1,9 +1,13 @@
 use crate::agents::{AgentInfo, AgentQueryData, AgentQueryDataMut};
 use crate::obstacles::{AsObstacle, TransformObstacle};
-use avian3d::prelude::*;
 use bevy::prelude::*;
 use dodgy_2d::{Agent, Obstacle};
 use std::borrow::Cow;
+
+#[cfg(feature = "2d")]
+use avian2d::prelude::*;
+#[cfg(feature = "3d")]
+use avian3d::prelude::*;
 
 pub fn rvo_avoidance(
     agents: Query<AgentQueryData>,
@@ -26,17 +30,22 @@ pub fn rvo_avoidance(
         let Some(agent_goal) = agent_data.goal else {
             continue;
         };
-
+        #[cfg(feature = "3d")]
         let preferred_velocity = (agent_goal.dest - agent_data.transform.translation())
             .xz()
             .normalize_or_zero()
             * agent_data.info.max_speed;
 
+        #[cfg(feature = "2d")]
+        let preferred_velocity = (agent_goal.dest - agent_data.transform.translation().xy())
+            .normalize_or_zero()
+            * agent_data.info.max_speed;
+
         if preferred_velocity.length() < 1e-6 {
-            //warn_once!("Agent {} has no preferred velocity", agent_data.entity);
             continue;
         }
 
+        #[cfg(feature = "3d")]
         let intersections = spatial.shape_intersections(
             &Collider::sphere(
                 agent_data.info.radius
@@ -44,6 +53,17 @@ pub fn rvo_avoidance(
             ),
             agent_data.transform.translation(),
             Quat::IDENTITY,
+            &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
+        );
+
+        #[cfg(feature = "2d")]
+        let intersections = spatial.shape_intersections(
+            &Collider::circle(
+                agent_data.info.radius
+                    + agent_data.options.time_horizon * agent_data.info.max_speed,
+            ),
+            agent_data.transform.translation().xy(),
+            0.0,
             &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
         );
 
@@ -88,15 +108,28 @@ pub fn rvo_avoidance(
         }
 
         // Check whether the agent is within the goal tolerance
+        #[cfg(feature = "3d")]
         let distance = (agent_goal.dest - agent_data.transform.translation()).length();
+
+        #[cfg(feature = "2d")]
+        let distance = (agent_goal.dest - agent_data.transform.translation().xy()).length();
+
+        #[cfg(feature = "2d")]
         if distance <= agent_goal.tolerance {
             if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-                agent_data_mut.linvel.0 = Vec3::ZERO;
+                agent_data_mut.linvel.0 = Vec2::ZERO;
+            }
+            continue;
+        }
+        #[cfg(feature = "3d")]
+        if distance <= agent_goal.tolerance {
+            if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+                agent_data_mut.desired_vel.0 = Vec3::ZERO;
             }
             continue;
         }
 
-        let avoidance_velocity = dodgy_agent.compute_avoiding_velocity(
+        let ideal_velocity = dodgy_agent.compute_avoiding_velocity(
             &neighbours,
             &obstacles,
             preferred_velocity,
@@ -105,19 +138,14 @@ pub fn rvo_avoidance(
             agent_data.options,
         );
 
+        #[cfg(feature = "3d")]
         if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-            agent_data_mut.linvel.0 = Vec3::new(avoidance_velocity.x, 0.0, avoidance_velocity.y);
+            agent_data_mut.desired_vel.0 =
+                Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
         }
-    }
-}
-
-pub(crate) fn on_add_create_collider(
-    mut commands: Commands,
-    query: Query<(Entity, &AgentInfo, Option<&Collider>), Added<AgentInfo>>,
-) {
-    for (e, agent, option_collider) in query.iter() {
-        if option_collider.is_none() {
-            //commands.entity(e).insert(Collider::circle(agent.radius));
+        #[cfg(feature = "2d")]
+        if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+            agent_data_mut.linvel.0 = Vec2::new(ideal_velocity.x, ideal_velocity.y);
         }
     }
 }

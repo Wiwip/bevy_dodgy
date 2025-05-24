@@ -19,6 +19,7 @@ fn main() {
         .add_plugins(PhysicsPlugins::default())
         .add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(DodgyPlugin)
+        .add_plugins(DodgyDebugPlugin)
         .add_plugins(TopDownCameraPlugin)
         .add_systems(Startup, spawn_entities)
         .add_systems(Startup, spawn_camera)

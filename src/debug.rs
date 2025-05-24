@@ -1,5 +1,9 @@
-use crate::agents::{AgentGoal, AgentQueryData};
+use crate::agents::{AgentGoal, AgentQueryData, AgentIdealVelocity};
+#[cfg(feature = "2d")]
+use avian2d::prelude::*;
+#[cfg(feature = "3d")]
 use avian3d::prelude::*;
+
 use bevy::app::{App, Plugin};
 use bevy::color::palettes::basic::BLUE;
 use bevy::color::palettes::css::PURPLE;
@@ -24,10 +28,7 @@ fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>) {
     config.line.style = GizmoLineStyle::Dotted;
 }
 
-fn display_dodgy_agents(
-    query: Query<AgentQueryData>,
-    mut gizmos: Gizmos,
-) {
+fn display_dodgy_agents(query: Query<AgentQueryData>, mut gizmos: Gizmos) {
     for agent in query.iter() {
         gizmos.circle(
             Isometry3d::new(
@@ -39,13 +40,23 @@ fn display_dodgy_agents(
         );
     }
 }
-
+#[cfg(feature = "3d")]
+fn display_agent_velocity(
+    query: Query<(&GlobalTransform, &AgentIdealVelocity, &AgentGoal)>,
+    mut gizmos: Gizmos,
+) {
+    for (tf, ideal_velocity, goal) in query.iter() {
+        gizmos.line(tf.translation(), tf.translation() + ideal_velocity.0, BLUE);
+        gizmos.line(tf.translation(), goal.dest, PURPLE.with_alpha(0.1));
+    }
+}
+#[cfg(feature = "2d")]
 fn display_agent_velocity(
     query: Query<(&GlobalTransform, &LinearVelocity, &AgentGoal)>,
     mut gizmos: Gizmos,
 ) {
     for (tf, linvel, goal) in query.iter() {
-        gizmos.line(tf.translation(), tf.translation() + linvel.0, BLUE);
-        gizmos.line(tf.translation(), goal.dest, PURPLE);
+        gizmos.line_2d(tf.translation().xy(), tf.translation().xy() + linvel.0, BLUE);
+        gizmos.line_2d(tf.translation().xy(), goal.dest.xy(), PURPLE);
     }
 }

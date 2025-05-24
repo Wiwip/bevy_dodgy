@@ -31,3 +31,8 @@ opt-level = 1
 # Enable high optimizations for dependencies (incl. Bevy)
 [profile.dev.package."*"]
 opt-level = 3
+
+[features]
+default = ["3d"]
+2d = []
+3d = []

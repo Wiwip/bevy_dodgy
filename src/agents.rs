@@ -1,4 +1,8 @@
+#[cfg(feature = "3d")]
 use avian3d::prelude::*;
+#[cfg(feature = "2d")]
+use avian2d::prelude::*;
+
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
 use dodgy_2d::{Agent, AvoidanceOptions};
@@ -22,20 +26,28 @@ pub struct AgentQueryDataMut {
     pub entity: Entity,
     pub info: &'static AgentInfo,
     pub transform: &'static GlobalTransform,
-    pub linvel: &'static mut LinearVelocity,
+    pub linvel: &'static LinearVelocity,
+    pub desired_vel: &'static mut AgentIdealVelocity,
     pub goal: Option<&'static AgentGoal>,
     pub options: &'static AvoidanceOptionsComponent,
 }
-
+#[cfg(feature = "3d")]
 #[derive(Component, Clone, Copy, Debug)]
 pub struct AgentGoal {
     pub dest: Vec3,
     pub tolerance: f32,
 }
 
+#[cfg(feature = "2d")]
+#[derive(Component, Clone, Copy, Debug)]
+pub struct AgentGoal {
+    pub dest: Vec2,
+    pub tolerance: f32,
+}
+
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
-#[require(AvoidanceOptionsComponent)]
+#[require(AvoidanceOptionsComponent, AgentIdealVelocity)]
 pub struct AgentInfo {
     /// The radius of the agent. Agents will use this to avoid bumping into each
     /// other.
@@ -49,6 +61,9 @@ pub struct AgentInfo {
 
     pub max_speed: f32,
 }
+
+#[derive(Component, Default, Clone, Copy, Debug)]
+pub struct AgentIdealVelocity(pub Vec3);
 
 #[derive(Component, Clone, PartialEq, Debug, Deref, DerefMut)]
 pub struct AvoidanceOptionsComponent(pub AvoidanceOptions);
@@ -72,8 +87,14 @@ impl Default for AvoidanceOptionsComponent {
 impl From<&AgentQueryDataMutReadOnlyItem<'_>> for Agent {
     fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
         Self {
+            #[cfg(feature = "3d")]
             position: value.transform.translation().xz(),
+            #[cfg(feature = "2d")]
+            position: value.transform.translation().xy(),
+            #[cfg(feature = "3d")]
             velocity: value.linvel.0.xz(),
+            #[cfg(feature = "2d")]
+            velocity: value.linvel.0.xy(),
             radius: value.info.radius,
             avoidance_responsibility: value.info.avoidance_responsibility,
         }

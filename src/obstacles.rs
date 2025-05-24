@@ -1,8 +1,12 @@
 use crate::geometry::{point_on_circle, rect_inner};
-use avian3d::parry::shape::TypedShape;
-use avian3d::prelude::*;
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
+
+#[cfg(feature = "3d")]
+use avian3d::prelude::*;
+#[cfg(feature = "2d")]
+use avian2d::prelude::*;
+
 
 pub trait AsObstacle {
     fn to_obstacle(&self) -> Option<Obstacle>;
@@ -12,18 +16,18 @@ impl AsObstacle for Collider {
     fn to_obstacle(&self) -> Option<Obstacle> {
         let shape = self.shape_scaled().as_typed_shape();
         match shape {
-            TypedShape::Cuboid(cuboid) => {
+            /*TypedShape::Cuboid(cuboid) => {
                 let [tr, tl, bl, br] = rect_inner(Vec3::from(cuboid.half_extents * 2.0).xz());
 
                 Some(Obstacle::Closed {
                     vertices: vec![tr, tl, bl, br],
                 })
-            }
+            }*/
 
             /*TypedShape::Triangle(tri) => Some(Obstacle::Closed {
                 vertices: vec![tri.a.xz().into(), tri.b.xz().into(), tri.c.xz().into()],
             }),*/
-            TypedShape::Ball(ball) => {
+            /*TypedShape::Ball(ball) => {
                 let num_vertices = 12; // TODO configuration resource
                 Some(Obstacle::Closed {
                     vertices: (0..num_vertices)
@@ -60,7 +64,7 @@ impl AsObstacle for Collider {
                         })
                         .collect(),
                 })
-            }
+            }*/
 
             /*TypedShape::Cone(cone) => {
                 let num_agents = 12; // TODO configuration resource

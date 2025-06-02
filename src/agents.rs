@@ -61,7 +61,11 @@ pub struct AgentInfo {
 
     pub max_speed: f32,
 }
+#[cfg(feature = "2d")]
+#[derive(Component, Default, Clone, Copy, Debug)]
+pub struct AgentIdealVelocity(pub Vec2);
 
+#[cfg(feature = "3d")]
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct AgentIdealVelocity(pub Vec3);
 

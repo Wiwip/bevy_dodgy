@@ -117,7 +117,7 @@ pub fn rvo_avoidance(
         #[cfg(feature = "2d")]
         if distance <= agent_goal.tolerance {
             if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-                agent_data_mut.linvel.0 = Vec2::ZERO;
+                agent_data_mut.desired_vel.0 = Vec2::ZERO;
             }
             continue;
         }
@@ -145,7 +145,7 @@ pub fn rvo_avoidance(
         }
         #[cfg(feature = "2d")]
         if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-            agent_data_mut.linvel.0 = Vec2::new(ideal_velocity.x, ideal_velocity.y);
+            agent_data_mut.desired_vel.0 = Vec2::new(ideal_velocity.x, ideal_velocity.y);
         }
     }
 }

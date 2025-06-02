@@ -9,9 +9,10 @@ categories = ["game-development"]
 keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 
 [dependencies]
-avian3d = "0.3.0"
 dodgy_2d = "0.5"
 rand = "0.9"
+avian3d = "0.3.0"
+avian2d = "0.3.0"
 
 [dependencies.bevy]
 version = "0.16.0"
@@ -33,6 +34,6 @@ opt-level = 1
 opt-level = 3
 
 [features]
-default = ["3d"]
+default = ["2d"]
 2d = []
 3d = []

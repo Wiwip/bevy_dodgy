@@ -4,6 +4,7 @@ use avian3d::prelude::*;
 use avian2d::prelude::*;
 
 use bevy::ecs::query::QueryData;
+use bevy::ecs::system::lifetimeless::Write;
 use bevy::prelude::*;
 use dodgy_2d::{Agent, AvoidanceOptions};
 
@@ -31,8 +32,22 @@ pub struct AgentQueryDataMut {
     pub goal: Option<&'static AgentGoal>,
     pub options: &'static AvoidanceOptionsComponent,
 }
+
 #[cfg(feature = "3d")]
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(QueryData)]
+#[query_data(mutable)]
+pub struct DodgyAgent {
+    pub goal: Write<AgentGoal>,
+}
+
+impl DodgyAgentItem<'_, '_> {
+    pub fn set_goal(&mut self, goal: Vec3) {
+        self.goal.dest = goal;
+    }
+}
+
+#[cfg(feature = "3d")]
+#[derive(Component, Default, Clone, Copy, Debug)]
 pub struct AgentGoal {
     pub dest: Vec3,
     pub tolerance: f32,
@@ -88,7 +103,7 @@ impl Default for AvoidanceOptionsComponent {
     }
 }
 
-impl From<&AgentQueryDataMutReadOnlyItem<'_>> for Agent {
+impl From<&AgentQueryDataMutReadOnlyItem<'_, '_>> for Agent {
     fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
         Self {
             #[cfg(feature = "3d")]

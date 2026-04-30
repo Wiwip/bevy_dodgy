@@ -1,4 +1,4 @@
-use bevy::math::{Vec2, Vec3};
+use bevy::math::Vec2;
 
 pub fn rect_inner(size: Vec2) -> [Vec2; 4] {
     let half_size = size / 2.;

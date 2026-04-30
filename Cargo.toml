@@ -9,20 +9,20 @@ categories = ["game-development"]
 keywords = ["orca", "rvo", "collision", "avoidance", "navigation"]
 
 [dependencies]
-dodgy_2d = "0.5"
-rand = "0.9"
-avian3d = "0.3.0"
-avian2d = "0.3.0"
+dodgy_2d = { git = "https://github.com/Wiwip/dodgy.git" }
+rand = "0.10"
+avian3d = { version = "0.6", optional = true }
+avian2d = { version = "0.6", optional = true }
 
 [dependencies.bevy]
-version = "0.16.0"
+version = "0.18"
 default-features = false
 
 [dev-dependencies]
-simple_camera = { path = "../simple_camera" }
+bevy_top_down_camera = { path = "../bevy_top_down_camera" }
 
 [dev-dependencies.bevy]
-version = "0.16.0"
+version = "0.18"
 default-features = true
 
 # Enable a small amount of optimization in debug mode
@@ -34,6 +34,6 @@ opt-level = 1
 opt-level = 3
 
 [features]
-default = ["2d"]
-2d = []
-3d = []
+default = []
+2d = ["dep:avian2d"]
+3d = ["dep:avian3d"]

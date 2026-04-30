@@ -11,17 +11,22 @@ use avian3d::prelude::*;
 
 pub fn rvo_avoidance(
     agents: Query<AgentQueryData>,
-    mut query: Query<(AgentQueryDataMut, &RigidBody)>,
+    mut query: Query<AgentQueryDataMut, With<RigidBody>>,
     q_obstacles: Query<(&GlobalTransform, &Collider, &RigidBody), Without<AgentInfo>>,
-    spatial: SpatialQuery,
+    spatial: Option<SpatialQuery>,
     time: Res<Time>,
 ) {
     if !(time.delta_secs() > 0.0) {
         return;
     }
 
+    let Some(spatial) = spatial else {
+        error!("Spatial query does not exist.");
+        return;
+    };
+
     for agent_data in agents.iter() {
-        let Ok((agent_data, _)) = query.get(agent_data.entity) else {
+        let Ok(agent_data) = query.get(agent_data.entity) else {
             continue;
         };
         let dodgy_agent = Agent::from(&agent_data);
@@ -72,10 +77,8 @@ pub fn rvo_avoidance(
             .clone()
             .into_iter()
             .filter_map(|e| {
-                if let Ok((data, body)) = query.get(e) {
-                    if body.is_dynamic() {
-                        return Some(Cow::Owned(Agent::from(&data)));
-                    }
+                if let Ok(data) = query.get(e) {
+                    return Some(Cow::Owned(Agent::from(&data)));
                 };
                 None
             })
@@ -107,23 +110,23 @@ pub fn rvo_avoidance(
             }
         }
 
-        // Check whether the agent is within the goal tolerance
+        // Check whether the agent is within the goal tolerance.
         #[cfg(feature = "3d")]
-        let distance = (agent_goal.dest - agent_data.transform.translation()).length();
+        let distance = (agent_goal.dest.xz() - agent_data.transform.translation().xz()).length();
 
         #[cfg(feature = "2d")]
         let distance = (agent_goal.dest - agent_data.transform.translation().xy()).length();
 
         #[cfg(feature = "2d")]
         if distance <= agent_goal.tolerance {
-            if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+            if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
                 agent_data_mut.desired_vel.0 = Vec2::ZERO;
             }
             continue;
         }
         #[cfg(feature = "3d")]
         if distance <= agent_goal.tolerance {
-            if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+            if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
                 agent_data_mut.desired_vel.0 = Vec3::ZERO;
             }
             continue;
@@ -139,12 +142,11 @@ pub fn rvo_avoidance(
         );
 
         #[cfg(feature = "3d")]
-        if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
-            agent_data_mut.desired_vel.0 =
-                Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
+        if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
+            agent_data_mut.desired_vel.0 = Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
         }
         #[cfg(feature = "2d")]
-        if let Ok((mut agent_data_mut, _)) = query.get_mut(agent_data.entity) {
+        if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
             agent_data_mut.desired_vel.0 = Vec2::new(ideal_velocity.x, ideal_velocity.y);
         }
     }

@@ -1,9 +1,9 @@
+use std::f32::consts::PI;
 use crate::agents::{AgentGoal, AgentIdealVelocity, AgentInfo, AgentQueryData};
 #[cfg(feature = "2d")]
 use avian2d::prelude::*;
 #[cfg(feature = "3d")]
 use avian3d::prelude::*;
-use std::borrow::Cow;
 
 use crate::obstacles::{AsObstacle, TransformObstacle};
 use bevy::app::{App, Plugin};
@@ -11,7 +11,6 @@ use bevy::color::palettes::basic::BLUE;
 use bevy::color::palettes::css::PURPLE;
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
-use std::f32::consts::PI;
 
 pub struct DodgyDebugPlugin;
 
@@ -21,13 +20,12 @@ impl Plugin for DodgyDebugPlugin {
             .add_systems(Startup, setup_debug_gizmos)
             .add_systems(PostUpdate, (display_dodgy_agents, display_agent_velocity));
 
-        #[cfg(feature = "2d")]
         app.add_systems(PostUpdate, display_obstacles);
     }
 }
 
 #[derive(Default, Reflect, GizmoConfigGroup)]
-pub struct DodgyDebugGizmos {}
+pub struct DodgyDebugGizmos;
 
 fn setup_debug_gizmos(mut config_store: ResMut<GizmoConfigStore>) {
     let (config, _) = config_store.config_mut::<DodgyDebugGizmos>();
@@ -66,7 +64,7 @@ fn display_agent_velocity(
 ) {
     for (tf, ideal_velocity, goal) in query.iter() {
         gizmos.line(tf.translation(), tf.translation() + ideal_velocity.0, BLUE);
-        gizmos.line(tf.translation(), goal.dest, PURPLE.with_alpha(0.1));
+        gizmos.line(tf.translation(), goal.dest, PURPLE.with_alpha(0.50));
     }
 }
 #[cfg(feature = "2d")]
@@ -89,7 +87,7 @@ fn display_obstacles(
     obstacles: Query<(&GlobalTransform, &Collider, &RigidBody), Without<AgentInfo>>,
     mut gizmos: Gizmos,
 ) {
-    for (tf, collider, body) in obstacles {
+    for (tf, collider, _body) in obstacles {
         if let Some(mut obstacle) = collider.to_obstacle() {
             obstacle.transform_points(tf);
 
@@ -99,6 +97,29 @@ fn display_obstacles(
                 }
                 Obstacle::Open { vertices } => {
                     gizmos.linestrip_2d(vertices, BLUE);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(feature = "3d")]
+fn display_obstacles(
+    obstacles: Query<(&GlobalTransform, &Collider, &RigidBody), Without<AgentInfo>>,
+    mut gizmos: Gizmos<DodgyDebugGizmos>,
+) {
+    for (tf, collider, _body) in obstacles {
+        if let Some(mut obstacle) = collider.to_obstacle() {
+            obstacle.transform_points(tf);
+
+            match obstacle {
+                Obstacle::Closed { vertices } => {
+                    let vertices = vertices.iter().map(|vec| Vec3::new(vec.x, 0.0, vec.y));
+                    gizmos.linestrip(vertices, BLUE);
+                }
+                Obstacle::Open { vertices } => {
+                    let vertices = vertices.iter().map(|vec| Vec3::new(vec.x, 0.0, vec.y));
+                    gizmos.linestrip(vertices, BLUE);
                 }
             }
         }

@@ -1,16 +1,15 @@
-use avian3d::math::Vector;
 use avian3d::prelude::*;
-use bevy::core_pipeline::bloom::Bloom;
+
+use bevy::camera::{Exposure, PhysicalCameraParameters};
 use bevy::core_pipeline::tonemapping::Tonemapping;
-use bevy::pbr::CascadeShadowConfigBuilder;
+use bevy::light::CascadeShadowConfigBuilder;
+use bevy::post_process::bloom::Bloom;
 use bevy::prelude::*;
-use bevy::render::camera::{Exposure, PhysicalCameraParameters};
-use bevy_dodgy_2d::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
-use bevy_dodgy_2d::debug::DodgyDebugPlugin;
+use bevy_dodgy_2d::agents::{AgentGoal, AgentIdealVelocity, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy_2d::DodgyPlugin;
+use bevy_top_down_camera::{CameraController, TopDownCameraPlugin};
 use dodgy_2d::AvoidanceOptions;
-use rand::Rng;
-use simple_camera::{CameraController, TopDownCameraPlugin};
+use rand::RngExt;
 use std::f32::consts::PI;
 
 fn main() {
@@ -19,23 +18,24 @@ fn main() {
         .add_plugins(PhysicsPlugins::default())
         .add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(DodgyPlugin)
-        .add_plugins(DodgyDebugPlugin)
+        //.add_plugins(DodgyDebugPlugin)
         .add_plugins(TopDownCameraPlugin)
         .add_systems(Startup, spawn_entities)
         .add_systems(Startup, spawn_camera)
         .add_systems(Update, find_new_destination)
+        .add_systems(Update, apply_velocity)
         .insert_resource(Gravity(Vec3::ZERO))
         .run();
 }
 
 fn spawn_entities(mut commands: Commands) {
     let mut rng = rand::rng();
-    for _ in 0..600 {
+    for _ in 0..2000 {
         commands
             .spawn(AgentInfo {
                 radius: 1.0,
                 avoidance_responsibility: 1.0,
-                max_speed: 30.0,
+                max_speed: 12.0,
             })
             .insert(AvoidanceOptionsComponent(AvoidanceOptions {
                 obstacle_margin: 1.0,
@@ -44,18 +44,18 @@ fn spawn_entities(mut commands: Commands) {
             }))
             .insert(AgentGoal {
                 dest: Vec3::new(
-                    rng.random_range(-200.0..200.0),
+                    rng.random_range(-400.0..400.0),
                     0.0,
-                    rng.random_range(-200.0..200.0),
+                    rng.random_range(-400.0..400.0),
                 ),
                 tolerance: 1.0,
             })
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
             .insert(Transform::from_translation(Vec3::new(
-                rng.random_range(-200.0..200.0),
+                rng.random_range(-400.0..400.0),
                 0.0,
-                rng.random_range(-200.0..200.0),
+                rng.random_range(-400.0..400.0),
             )))
             .insert(Collider::cuboid(1.0, 1.0, 1.0))
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))
@@ -94,7 +94,7 @@ pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         Camera {
-            hdr: true, // 1. HDR is required for bloom
+            //hdr: true, // 1. HDR is required for bloom
             clear_color: ClearColorConfig::Custom(Color::BLACK),
             ..default()
         },
@@ -127,4 +127,10 @@ pub fn spawn_camera(mut commands: Commands) {
         }
         .build(),
     ));
+}
+
+pub fn apply_velocity(mut query: Query<(&mut LinearVelocity, &AgentIdealVelocity)>) {
+    for (mut vel, ideal_vel) in query.iter_mut() {
+        vel.0 = ideal_vel.0;
+    }
 }

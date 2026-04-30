@@ -1,9 +1,8 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy_dodgy::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
-use bevy_dodgy::DodgyPlugin;
+use bevy_dodgy_2d::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
+use bevy_dodgy_2d::DodgyPlugin;
 use dodgy_2d::AvoidanceOptions;
-use rand::Rng;
 
 fn main() {
     App::new()
@@ -12,6 +11,7 @@ fn main() {
         .add_plugins(PhysicsDebugPlugin::default())
         .add_plugins(DodgyPlugin)
         .add_systems(Startup, setup)
+        .add_systems(Update, apply_velocity)
         .insert_resource(Gravity(Vec2::ZERO))
         .run();
 }
@@ -19,7 +19,7 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let right_x = 400.0;
     for i in 0..20 {
@@ -134,5 +134,12 @@ fn setup(mut commands: Commands) {
             .insert(
                 DebugRender::default().with_collider_color(Srgba::hex("#2e41a1").unwrap().into()),
             );
+    }
+}
+
+
+pub fn apply_velocity(mut query: Query<(&mut LinearVelocity, &AgentIdealVelocity)>) {
+    for (mut vel, ideal_vel) in query.iter_mut() {
+        vel.0 = ideal_vel.0;
     }
 }

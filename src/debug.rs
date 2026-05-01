@@ -1,9 +1,9 @@
-use std::f32::consts::PI;
-use crate::agents::{AgentGoal, AgentIdealVelocity, AgentInfo, AgentQueryData};
+use crate::agents::{AgentInfo, AgentQueryData, IdealVelocity, PreferredVelocity};
 #[cfg(feature = "2d")]
 use avian2d::prelude::*;
 #[cfg(feature = "3d")]
 use avian3d::prelude::*;
+use std::f32::consts::PI;
 
 use crate::obstacles::{AsObstacle, TransformObstacle};
 use bevy::app::{App, Plugin};
@@ -58,18 +58,19 @@ fn display_dodgy_agents(query: Query<AgentQueryData>, mut gizmos: Gizmos) {
 }
 
 #[cfg(feature = "3d")]
-fn display_agent_velocity(
-    query: Query<(&GlobalTransform, &AgentIdealVelocity, &AgentGoal)>,
-    mut gizmos: Gizmos,
-) {
-    for (tf, ideal_velocity, goal) in query.iter() {
-        gizmos.line(tf.translation(), tf.translation() + ideal_velocity.0, BLUE);
-        gizmos.line(tf.translation(), goal.dest, PURPLE.with_alpha(0.50));
+fn display_agent_velocity(query: Query<(&GlobalTransform, &PreferredVelocity, &IdealVelocity)>, mut gizmos: Gizmos) {
+    for (tf, pref, ideal) in query.iter() {
+        gizmos.line(tf.translation(), tf.translation() + ideal.0, BLUE);
+        gizmos.line(
+            tf.translation(),
+            tf.translation() + pref.0,
+            PURPLE.with_alpha(0.50),
+        );
     }
 }
 #[cfg(feature = "2d")]
 fn display_agent_velocity(
-    query: Query<(&GlobalTransform, &LinearVelocity, &AgentGoal)>,
+    query: Query<(&GlobalTransform, &LinearVelocity, &DodgyVelocity)>,
     mut gizmos: Gizmos,
 ) {
     for (tf, linvel, goal) in query.iter() {
@@ -78,7 +79,7 @@ fn display_agent_velocity(
             tf.translation().xy() + linvel.0,
             BLUE,
         );
-        gizmos.line_2d(tf.translation().xy(), goal.dest.xy(), PURPLE);
+        gizmos.line_2d(tf.translation().xy(), goal.desired.xy(), PURPLE);
     }
 }
 

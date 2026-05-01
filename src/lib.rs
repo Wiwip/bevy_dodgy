@@ -5,16 +5,16 @@ mod obstacles;
 mod systems;
 
 use crate::systems::rvo_avoidance;
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, Plugin};
 use bevy::prelude::*;
 pub use dodgy_2d::AvoidanceOptions;
 
 #[cfg(feature = "2d")]
 use avian2d::prelude::PhysicsStepSystems;
 
+use crate::debug::DodgyDebugGizmos;
 #[cfg(feature = "3d")]
 use avian3d::prelude::PhysicsStepSystems;
-use crate::debug::DodgyDebugGizmos;
 
 pub struct DodgyPlugin;
 

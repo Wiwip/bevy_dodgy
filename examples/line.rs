@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy_dodgy_2d::agents::{AgentGoal, AgentInfo, AvoidanceOptionsComponent};
+use bevy_dodgy_2d::agents::{DodgyVelocity, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy_2d::DodgyPlugin;
 use dodgy_2d::AvoidanceOptions;
 
@@ -31,8 +31,8 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::ROTATION_LOCKED)
-            .insert(AgentGoal {
-                dest: Vec2::new(right_x + 200.0, 0.0),
+            .insert(DodgyVelocity {
+                desired: Vec2::new(right_x + 200.0, 0.0),
                 tolerance: 4.0,
             })
             .insert(Transform::from_translation(Vec3::new(
@@ -58,8 +58,8 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal {
-                dest: Vec2::new(right_x + -200.0, 0.0),
+            .insert(DodgyVelocity {
+                desired: Vec2::new(right_x + -200.0, 0.0),
                 tolerance: 4.0,
             })
             .insert(Transform::from_translation(Vec3::new(
@@ -94,8 +94,8 @@ fn setup(mut commands: Commands) {
             }))
             .insert(RigidBody::Dynamic)
             //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal {
-                dest: Vec2::new(0.0, left_x + 200.0),
+            .insert(DodgyVelocity {
+                desired: Vec2::new(0.0, left_x + 200.0),
                 tolerance: 4.0,
             })
             .insert(Transform::from_translation(Vec3::new(
@@ -116,8 +116,8 @@ fn setup(mut commands: Commands) {
             })
             .insert(RigidBody::Dynamic)
             //.insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
-            .insert(AgentGoal {
-                dest: Vec2::new(0.0, left_x + -200.0),
+            .insert(DodgyVelocity {
+                desired: Vec2::new(0.0, left_x + -200.0),
                 tolerance: 4.0,
             })
             .insert(Transform::from_translation(Vec3::new(

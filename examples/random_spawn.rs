@@ -5,12 +5,13 @@ use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::light::CascadeShadowConfigBuilder;
 use bevy::post_process::bloom::Bloom;
 use bevy::prelude::*;
-use bevy_dodgy_2d::agents::{AgentGoal, AgentIdealVelocity, AgentInfo, AvoidanceOptionsComponent};
+use bevy_dodgy_2d::agents::{AgentInfo, AvoidanceOptionsComponent, IdealVelocity, PreferredVelocity};
 use bevy_dodgy_2d::DodgyPlugin;
 use bevy_top_down_camera::{CameraController, TopDownCameraPlugin};
 use dodgy_2d::AvoidanceOptions;
 use rand::RngExt;
 use std::f32::consts::PI;
+use bevy_dodgy_2d::debug::DodgyDebugPlugin;
 
 fn main() {
     App::new()
@@ -23,9 +24,21 @@ fn main() {
         .add_systems(Startup, spawn_entities)
         .add_systems(Startup, spawn_camera)
         .add_systems(Update, find_new_destination)
-        .add_systems(Update, apply_velocity)
+        .add_systems(Update, (set_desired_velocity, apply_ideal_velocity).chain())
         .insert_resource(Gravity(Vec3::ZERO))
         .run();
+}
+
+#[derive(Component)]
+pub struct Goal(Vec3);
+
+impl Goal {
+    fn random() -> Self {
+        let mut rng = rand::rng();
+        let x = rng.random_range(-400.0..400.0);
+        let z = rng.random_range(-400.0..400.0);
+        Self(Vec3::new(x, 0.0, z))
+    }
 }
 
 fn spawn_entities(mut commands: Commands) {
@@ -33,7 +46,7 @@ fn spawn_entities(mut commands: Commands) {
     for _ in 0..2000 {
         commands
             .spawn(AgentInfo {
-                radius: 1.0,
+                radius: 2.1,
                 avoidance_responsibility: 1.0,
                 max_speed: 12.0,
             })
@@ -42,14 +55,7 @@ fn spawn_entities(mut commands: Commands) {
                 time_horizon: 1.0,
                 obstacle_time_horizon: 1.0,
             }))
-            .insert(AgentGoal {
-                dest: Vec3::new(
-                    rng.random_range(-400.0..400.0),
-                    0.0,
-                    rng.random_range(-400.0..400.0),
-                ),
-                tolerance: 1.0,
-            })
+            .insert(Goal::random())
             .insert(RigidBody::Dynamic)
             .insert(LockedAxes::new().lock_rotation_x().lock_rotation_z())
             .insert(Transform::from_translation(Vec3::new(
@@ -57,35 +63,41 @@ fn spawn_entities(mut commands: Commands) {
                 0.0,
                 rng.random_range(-400.0..400.0),
             )))
-            .insert(Collider::cuboid(1.0, 1.0, 1.0))
+            .insert(Collider::capsule(2.0, 4.25))
             .insert(CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)))
             .insert(
                 DebugRender::default().with_collider_color(Srgba::hex("#a52c4c").unwrap().into()),
             );
     }
-
-    /*commands.spawn((
-        RigidBody::Static,
-        Transform::from_translation(Vec3::new(8.0, 0.0, 5.0)),
-        Collider::cuboid(1.0, 1.0, 1.0),
-        CollisionLayers::new(LayerMask(0b1111), LayerMask(0b1111)),
-        DebugRender::default().with_collider_color(Srgba::hex("#b86830").unwrap().into()),
-    ));*/
 }
 
-pub fn find_new_destination(mut query: Query<(&GlobalTransform, &mut AgentGoal)>){
+pub fn find_new_destination(mut query: Query<(&GlobalTransform, &mut Goal)>) {
     let mut rng = rand::rng();
-    
-    for (tf, mut agent) in query.iter_mut(){
-        if tf.translation().distance_squared(agent.dest) < agent.tolerance * agent.tolerance {
-            agent.dest = Vec3::new(
+
+    for (tf, mut goal) in query.iter_mut() {
+        if tf.translation().distance_squared(goal.0) < 0.1 {
+            goal.0 = Vec3::new(
                 rng.random_range(-200.0..200.0),
                 0.0,
                 rng.random_range(-200.0..200.0),
             );
         }
     }
-    
+}
+
+pub fn set_desired_velocity(
+    mut query: Query<(&mut Transform, &Goal, &mut PreferredVelocity, &AgentInfo)>,
+) {
+    for (tf, goal, mut pref_vel, agent) in query.iter_mut() {
+        let direction = (goal.0 - tf.translation).normalize_or_zero() * agent.max_speed;
+        pref_vel.0 = direction;
+    }
+}
+
+pub fn apply_ideal_velocity(mut query: Query<(&mut LinearVelocity, &IdealVelocity)>) {
+    for (mut vel, ideal) in query.iter_mut() {
+        vel.0 = ideal.0;
+    }
 }
 
 pub fn spawn_camera(mut commands: Commands) {
@@ -127,10 +139,4 @@ pub fn spawn_camera(mut commands: Commands) {
         }
         .build(),
     ));
-}
-
-pub fn apply_velocity(mut query: Query<(&mut LinearVelocity, &AgentIdealVelocity)>) {
-    for (mut vel, ideal_vel) in query.iter_mut() {
-        vel.0 = ideal_vel.0;
-    }
 }

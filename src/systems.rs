@@ -28,31 +28,21 @@ pub fn rvo_avoidance(
     query.par_iter_mut().for_each(|mut agent_data| {
         let dodgy_agent = Agent::from(&agent_data);
 
-        // If the agent has no goal, ignore.
-        let Some(agent_goal) = agent_data.goal else {
-            return;
-        };
-        #[cfg(feature = "3d")]
-        let preferred_velocity = (agent_goal.dest - agent_data.transform.translation())
-            .xz()
-            .normalize_or_zero()
-            * agent_data.info.max_speed;
-
         #[cfg(feature = "2d")]
         let preferred_velocity = (agent_goal.dest - agent_data.transform.translation().xy())
             .normalize_or_zero()
             * agent_data.info.max_speed;
 
-        if preferred_velocity.length() < 1e-6 {
+        if agent_data.pref_vel.length() < 1e-6 {
             return;
         }
+        
+        let horizon =
+            agent_data.info.radius + agent_data.options.time_horizon * agent_data.info.max_speed;
 
         #[cfg(feature = "3d")]
         let intersections = spatial.shape_intersections(
-            &Collider::sphere(
-                agent_data.info.radius
-                    + agent_data.options.time_horizon * agent_data.info.max_speed,
-            ),
+            &Collider::sphere(horizon),
             agent_data.transform.translation(),
             Quat::IDENTITY,
             &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
@@ -92,10 +82,7 @@ pub fn rvo_avoidance(
 
         #[cfg(feature = "2d")]
         let distance = (agent_goal.dest - agent_data.transform.translation().xy()).length();
-
-        #[cfg(feature = "3d")]
-        let distance = (agent_goal.dest.xz() - agent_data.transform.translation().xz()).length();
-
+        
         #[cfg(feature = "2d")]
         if distance <= agent_goal.tolerance {
             if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
@@ -104,22 +91,16 @@ pub fn rvo_avoidance(
             continue;
         }
 
-        #[cfg(feature = "3d")]
-        if distance <= agent_goal.tolerance {
-            agent_data.desired_vel.0 = Vec3::ZERO;
-            return;
-        }
-
         let ideal_velocity = dodgy_agent.compute_avoiding_velocity(
             &neighbours,
             &obstacles,
-            preferred_velocity,
+            agent_data.pref_vel.xz(),
             agent_data.info.max_speed,
             time.delta_secs(),
             agent_data.options,
         );
 
-        agent_data.desired_vel.0 = Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
+        agent_data.ideal_vel.0 = Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
 
         #[cfg(feature = "2d")]
         if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {

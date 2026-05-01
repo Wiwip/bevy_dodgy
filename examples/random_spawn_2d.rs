@@ -4,7 +4,7 @@ use bevy::camera::{Exposure, PhysicalCameraParameters};
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::post_process::bloom::Bloom;
 use bevy::prelude::*;
-use bevy_dodgy_2d::agents::{AgentGoal, AgentIdealVelocity, AgentInfo, AvoidanceOptionsComponent};
+use bevy_dodgy_2d::agents::{DodgyVelocity, AgentIdealVelocity, AgentInfo, AvoidanceOptionsComponent};
 use bevy_dodgy_2d::DodgyPlugin;
 use bevy_top_down_camera::{CameraController, TopDownCameraPlugin};
 use dodgy_2d::AvoidanceOptions;
@@ -40,8 +40,8 @@ fn spawn_entities(mut commands: Commands) {
                 time_horizon: 1.0,
                 obstacle_time_horizon: 1.0,
             }))
-            .insert(AgentGoal {
-                dest: Vec2::new(
+            .insert(DodgyVelocity {
+                desired: Vec2::new(
                     rng.random_range(-1000.0..1000.0),
                     rng.random_range(-1000.0..1000.0),
                 ),
@@ -62,12 +62,12 @@ fn spawn_entities(mut commands: Commands) {
     }
 }
 
-pub fn find_new_destination(mut query: Query<(&GlobalTransform, &mut AgentGoal)>) {
+pub fn find_new_destination(mut query: Query<(&GlobalTransform, &mut DodgyVelocity)>) {
     let mut rng = rand::rng();
 
     for (tf, mut agent) in query.iter_mut() {
-        if tf.translation().xz().distance_squared(agent.dest) < agent.tolerance * agent.tolerance {
-            agent.dest = Vec2::new(
+        if tf.translation().xz().distance_squared(agent.desired) < agent.tolerance * agent.tolerance {
+            agent.desired = Vec2::new(
                 rng.random_range(-2000.0..2000.0),
                 rng.random_range(-2000.0..2000.0),
             );

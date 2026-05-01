@@ -1,4 +1,4 @@
-use crate::geometry::{point_on_circle, rect_inner};
+use crate::geometry::{rect_inner};
 use bevy::prelude::*;
 use dodgy_2d::Obstacle;
 

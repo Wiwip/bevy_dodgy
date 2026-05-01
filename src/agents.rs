@@ -4,7 +4,7 @@ use avian3d::prelude::*;
 use avian2d::prelude::*;
 
 use bevy::ecs::query::QueryData;
-use bevy::ecs::system::lifetimeless::Write;
+use bevy::ecs::system::lifetimeless::{Read, Write};
 use bevy::prelude::*;
 use dodgy_2d::{Agent, AvoidanceOptions};
 
@@ -14,11 +14,11 @@ use dodgy_2d::{Agent, AvoidanceOptions};
 #[query_data(derive(Debug))]
 pub struct AgentQueryData {
     pub entity: Entity,
-    pub info: &'static AgentInfo,
-    pub transform: &'static GlobalTransform,
-    pub linvel: &'static LinearVelocity,
-    pub goal: Option<&'static AgentGoal>,
-    pub options: &'static AvoidanceOptionsComponent,
+    pub info: Read<AgentInfo>,
+    pub transform: Read<GlobalTransform>,
+    pub linvel: Read<LinearVelocity>,
+    pub pref_vel: Read<PreferredVelocity>,
+    pub options: Read<AvoidanceOptionsComponent>,
 }
 
 ///
@@ -26,33 +26,21 @@ pub struct AgentQueryData {
 #[query_data(mutable, derive(Debug))]
 pub struct AgentQueryDataMut {
     pub entity: Entity,
-    pub info: &'static AgentInfo,
-    pub transform: &'static GlobalTransform,
-    pub linvel: &'static LinearVelocity,
-    pub desired_vel: &'static mut AgentIdealVelocity,
-    pub goal: Option<&'static AgentGoal>,
-    pub options: &'static AvoidanceOptionsComponent,
+    pub info: Read<AgentInfo>,
+    pub transform: Read<GlobalTransform>,
+    pub linvel: Read<LinearVelocity>,
+    pub pref_vel: Read<PreferredVelocity>,
+    pub ideal_vel: Write<IdealVelocity>,
+    pub options: Read<AvoidanceOptionsComponent>,
 }
 
 #[cfg(feature = "3d")]
-#[derive(QueryData)]
-#[query_data(mutable)]
-pub struct DodgyAgent {
-    pub goal: Write<AgentGoal>,
-}
-
-impl DodgyAgentItem<'_, '_> {
-    pub fn set_goal(&mut self, goal: Vec3) {
-        self.goal.dest = goal;
-    }
-}
+#[derive(Component, Default, Clone, Copy, Debug, Deref, DerefMut)]
+pub struct PreferredVelocity(pub Vec3);
 
 #[cfg(feature = "3d")]
-#[derive(Component, Default, Clone, Copy, Debug)]
-pub struct AgentGoal {
-    pub dest: Vec3,
-    pub tolerance: f32,
-}
+#[derive(Component, Default, Clone, Copy, Debug, Deref, DerefMut)]
+pub struct IdealVelocity(pub Vec3);
 
 #[cfg(feature = "2d")]
 #[derive(Component, Clone, Copy, Debug)]
@@ -63,7 +51,7 @@ pub struct AgentGoal {
 
 /// Represents an agent in the simulation
 #[derive(Component, Clone, PartialEq, Debug)]
-#[require(AvoidanceOptionsComponent, AgentIdealVelocity)]
+#[require(AvoidanceOptionsComponent, PreferredVelocity, IdealVelocity)]
 pub struct AgentInfo {
     /// The radius of the agent. Agents will use this to avoid bumping into each
     /// other.
@@ -80,10 +68,6 @@ pub struct AgentInfo {
 #[cfg(feature = "2d")]
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct AgentIdealVelocity(pub Vec2);
-
-#[cfg(feature = "3d")]
-#[derive(Component, Default, Clone, Copy, Debug)]
-pub struct AgentIdealVelocity(pub Vec3);
 
 #[derive(Component, Clone, PartialEq, Debug, Deref, DerefMut)]
 pub struct AvoidanceOptionsComponent(pub AvoidanceOptions);

@@ -84,19 +84,17 @@ pub fn rvo_avoidance(
                         }
                     }
                     RigidBody::Dynamic | RigidBody::Kinematic => {
-                        // Keep the warnings from your second snippet if they are useful for debugging
                         warn_once!("Non-static body detected as obstacle; ignoring.");
                     }
                 }
             }
         }
 
-        // Check whether the agent is within the goal tolerance.
-        #[cfg(feature = "3d")]
-        let distance = (agent_goal.dest.xz() - agent_data.transform.translation().xz()).length();
-
         #[cfg(feature = "2d")]
         let distance = (agent_goal.dest - agent_data.transform.translation().xy()).length();
+
+        #[cfg(feature = "3d")]
+        let distance = (agent_goal.dest.xz() - agent_data.transform.translation().xz()).length();
 
         #[cfg(feature = "2d")]
         if distance <= agent_goal.tolerance {
@@ -105,6 +103,7 @@ pub fn rvo_avoidance(
             }
             continue;
         }
+
         #[cfg(feature = "3d")]
         if distance <= agent_goal.tolerance {
             agent_data.desired_vel.0 = Vec3::ZERO;

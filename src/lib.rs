@@ -11,6 +11,7 @@ pub use dodgy_2d::AvoidanceOptions;
 
 #[cfg(feature = "2d")]
 use avian2d::prelude::PhysicsStepSystems;
+
 #[cfg(feature = "3d")]
 use avian3d::prelude::PhysicsStepSystems;
 use crate::debug::DodgyDebugGizmos;

@@ -25,15 +25,12 @@ pub fn rvo_avoidance(
         return;
     };
 
-    for agent_data in agents.iter() {
-        let Ok(agent_data) = query.get(agent_data.entity) else {
-            continue;
-        };
+    query.par_iter_mut().for_each(|mut agent_data| {
         let dodgy_agent = Agent::from(&agent_data);
 
         // If the agent has no goal, ignore.
         let Some(agent_goal) = agent_data.goal else {
-            continue;
+            return;
         };
         #[cfg(feature = "3d")]
         let preferred_velocity = (agent_goal.dest - agent_data.transform.translation())
@@ -47,7 +44,7 @@ pub fn rvo_avoidance(
             * agent_data.info.max_speed;
 
         if preferred_velocity.length() < 1e-6 {
-            continue;
+            return;
         }
 
         #[cfg(feature = "3d")]
@@ -73,11 +70,10 @@ pub fn rvo_avoidance(
         );
 
         // Filter the intersected entities to return only dynamic agents
-        let neighbours: Vec<Cow<'static, Agent>> = intersections
-            .clone()
-            .into_iter()
+        let neighbours: &Vec<Cow<'static, Agent>> = &intersections
+            .iter()
             .filter_map(|e| {
-                if let Ok(data) = query.get(e) {
+                if let Ok(data) = agents.get(*e) {
                     return Some(Cow::Owned(Agent::from(&data)));
                 };
                 None
@@ -126,10 +122,8 @@ pub fn rvo_avoidance(
         }
         #[cfg(feature = "3d")]
         if distance <= agent_goal.tolerance {
-            if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
-                agent_data_mut.desired_vel.0 = Vec3::ZERO;
-            }
-            continue;
+            agent_data.desired_vel.0 = Vec3::ZERO;
+            return;
         }
 
         let ideal_velocity = dodgy_agent.compute_avoiding_velocity(
@@ -141,13 +135,11 @@ pub fn rvo_avoidance(
             agent_data.options,
         );
 
-        #[cfg(feature = "3d")]
-        if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
-            agent_data_mut.desired_vel.0 = Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
-        }
+        agent_data.desired_vel.0 = Vec3::new(ideal_velocity.x, 0.0, ideal_velocity.y);
+
         #[cfg(feature = "2d")]
         if let Ok(mut agent_data_mut) = query.get_mut(agent_data.entity) {
             agent_data_mut.desired_vel.0 = Vec2::new(ideal_velocity.x, ideal_velocity.y);
         }
-    }
+    });
 }

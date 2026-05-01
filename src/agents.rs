@@ -16,6 +16,7 @@ pub struct AgentQueryData {
     pub entity: Entity,
     pub info: &'static AgentInfo,
     pub transform: &'static GlobalTransform,
+    pub linvel: &'static LinearVelocity,
     pub goal: Option<&'static AgentGoal>,
     pub options: &'static AvoidanceOptionsComponent,
 }
@@ -105,6 +106,40 @@ impl Default for AvoidanceOptionsComponent {
 
 impl From<&AgentQueryDataMutReadOnlyItem<'_, '_>> for Agent {
     fn from(value: &AgentQueryDataMutReadOnlyItem) -> Self {
+        Self {
+            #[cfg(feature = "3d")]
+            position: value.transform.translation().xz(),
+            #[cfg(feature = "2d")]
+            position: value.transform.translation().xy(),
+            #[cfg(feature = "3d")]
+            velocity: value.linvel.0.xz(),
+            #[cfg(feature = "2d")]
+            velocity: value.linvel.0.xy(),
+            radius: value.info.radius,
+            avoidance_responsibility: value.info.avoidance_responsibility,
+        }
+    }
+}
+
+impl From<&AgentQueryDataMutItem<'_, '_>> for Agent {
+    fn from(value: &AgentQueryDataMutItem) -> Self {
+        Self {
+            #[cfg(feature = "3d")]
+            position: value.transform.translation().xz(),
+            #[cfg(feature = "2d")]
+            position: value.transform.translation().xy(),
+            #[cfg(feature = "3d")]
+            velocity: value.linvel.0.xz(),
+            #[cfg(feature = "2d")]
+            velocity: value.linvel.0.xy(),
+            radius: value.info.radius,
+            avoidance_responsibility: value.info.avoidance_responsibility,
+        }
+    }
+}
+
+impl From<&AgentQueryDataItem<'_, '_>> for Agent {
+    fn from(value: &AgentQueryDataItem) -> Self {
         Self {
             #[cfg(feature = "3d")]
             position: value.transform.translation().xz(),

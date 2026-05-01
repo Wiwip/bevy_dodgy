@@ -19,7 +19,7 @@ pub struct DodgyPlugin;
 
 impl Plugin for DodgyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, rvo_avoidance.in_set(PhysicsStepSystems::Finalize))
+        app.add_systems(FixedUpdate, rvo_avoidance.in_set(PhysicsStepSystems::Finalize))
             .insert_gizmo_config::<DodgyDebugGizmos>(
                 DodgyDebugGizmos,
                 GizmoConfig {

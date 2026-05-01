@@ -69,39 +69,24 @@ pub fn rvo_avoidance(
             &SpatialQueryFilter::default().with_excluded_entities([agent_data.entity]), // Exclude self
         );
 
-        // Filter the intersected entities to return only dynamic agents
-        let neighbours: &Vec<Cow<'static, Agent>> = &intersections
-            .iter()
-            .filter_map(|e| {
-                if let Ok(data) = agents.get(*e) {
-                    return Some(Cow::Owned(Agent::from(&data)));
-                };
-                None
-            })
-            .collect();
+        let mut neighbours: Vec<Cow<'static, Agent>> = Vec::with_capacity(intersections.len());
+        let mut obstacles: Vec<Cow<'static, Obstacle>> = Vec::with_capacity(intersections.len());
 
-        // Compute the obstacles
-        let mut obstacles: Vec<Cow<'static, Obstacle>> = vec![];
-        for intersect_entity in &intersections {
-            let Ok((obstacle_tf, collider, body)) = q_obstacles.get(*intersect_entity) else {
-                continue;
-            };
-
-            // Only static bodies are considered for obstacles.
-            match body {
-                RigidBody::Dynamic => {
-                    /* Ignore rigid bodies. */
-                    warn_once!("Dynamic bodies obstacles are not supported.");
-                }
-                RigidBody::Static => {
-                    if let Some(mut obstacle) = collider.to_obstacle() {
-                        obstacle.transform_points(obstacle_tf);
-                        obstacles.push(Cow::Owned(obstacle));
+        for &entity in &intersections {
+            if let Ok(data) = agents.get(entity) {
+                neighbours.push(Cow::Owned(Agent::from(&data)));
+            } else if let Ok((obstacle_tf, collider, body)) = q_obstacles.get(entity) {
+                match body {
+                    RigidBody::Static => {
+                        if let Some(mut obstacle) = collider.to_obstacle() {
+                            obstacle.transform_points(obstacle_tf);
+                            obstacles.push(Cow::Owned(obstacle));
+                        }
                     }
-                }
-                RigidBody::Kinematic => {
-                    /* Ignore kinematic bodies. */
-                    warn_once!("Kinematic bodies obstacles are not supported.");
+                    RigidBody::Dynamic | RigidBody::Kinematic => {
+                        // Keep the warnings from your second snippet if they are useful for debugging
+                        warn_once!("Non-static body detected as obstacle; ignoring.");
+                    }
                 }
             }
         }
